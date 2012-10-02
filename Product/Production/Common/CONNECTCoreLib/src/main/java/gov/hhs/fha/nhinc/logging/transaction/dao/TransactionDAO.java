@@ -28,6 +28,7 @@ package gov.hhs.fha.nhinc.logging.transaction.dao;
 
 import java.util.List;
 
+import gov.hhs.fha.nhinc.logging.transaction.model.LastTransactionMessage;
 import gov.hhs.fha.nhinc.logging.transaction.model.TransactionRepo;
 import gov.hhs.fha.nhinc.logging.transaction.persistance.HibernateUtil;
 import gov.hhs.fha.nhinc.nhinclib.NullChecker;
@@ -87,9 +88,14 @@ public final class TransactionDAO {
                 SessionFactory sessionFactory = HibernateUtil.getSessionFactory();
                 session = sessionFactory.openSession();
                 tx = session.beginTransaction();
-                LOG.info("Inserting Record...");
+                LOG.info("Inserting Record... messageid = " + transactionRepo.getMessageId() + ", transid = " 
+                        + transactionRepo.getTransactionId());
 
                 session.persist(transactionRepo);
+                
+                // also persist the last transaction associated with the message id...
+                session.persist(new LastTransactionMessage(transactionRepo.getMessageId(), 
+                        transactionRepo.getTransactionId()));
 
                 LOG.info("TransactionRepo Inserted successfully...");
                 tx.commit();
@@ -112,35 +118,27 @@ public final class TransactionDAO {
      * @return String
      */
     public String getTransactionId(String messageId) {
-        LOG.debug("TransactionDAO.getTransactinId() - Begin");
+
+        LOG.debug("TransactionDAO.getTransactionId() - Begin");
 
         if (NullChecker.isNullish(messageId)) {
             LOG.info("-- MessageId Parameter is required for Transaction Query --");
-            LOG.debug("TransactionDAO.getTransactinId() - End");
+            LOG.debug("TransactionDAO.getTransactionId() - End");
             return null;
         }
 
         Session session = null;
-        List<TransactionRepo> queryList = null;
-        TransactionRepo foundRecord = null;
+        LastTransactionMessage foundRecord = null;
         String transactionId = null;
         
         try {
 
             SessionFactory sessionFactory = HibernateUtil.getSessionFactory();
             session = sessionFactory.openSession();
-            LOG.info("Getting Records");
+            LOG.info("Getting Record... messageid = " + messageId);
 
-            Criteria aCriteria = session.createCriteria(TransactionRepo.class);
-
-            aCriteria.add(Expression.eq("messageId", messageId));
-
-            queryList = aCriteria.list();
-
-            if (queryList != null && !queryList.isEmpty()) {
-                foundRecord = queryList.get(0);
-            }
-
+            foundRecord = (LastTransactionMessage) session.get(LastTransactionMessage.class, messageId);
+            
         } catch (Exception e) {
             LOG.error("Exception in getPerfrepository() occured due to :" + e.getMessage(), e);
         } finally {
@@ -155,7 +153,12 @@ public final class TransactionDAO {
     }
 
     private void closeSession(Session session, boolean flush) {
+                
         if (session != null) {
+
+            // prove that the caching is working...
+            LOG.debug(session.getSessionFactory().getStatistics());
+
             if (flush) {
                 session.flush();
             }

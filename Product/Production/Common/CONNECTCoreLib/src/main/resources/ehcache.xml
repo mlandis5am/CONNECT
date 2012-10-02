@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ehcache>
+    <diskStore path="java.io.tmp" />
+<!--     <cache  -->
+<!--         name="gov.hhs.fha.nhinc.logging.transaction.model.TransactionRepo"  -->
+<!--         maxEntriesLocalHeap="25"  -->
+<!--         eternal="false" -->
+<!--         timeToIdleSeconds="120"  -->
+<!--         timeToLiveSeconds="120" -->
+<!--         overflowToDisk="true" -->
+<!--         statistics="true" /> -->
+        
+<!--     <defaultCache  -->
+<!--         maxElementsInMemory="200"  -->
+<!--         eternal="false" -->
+<!--         timeToIdleSeconds="120"  -->
+<!--         timeToLiveSeconds="120"  -->
+<!--         overflowToDisk="true" -->
+<!--         memoryStoreEvictionPolicy="LRU" /> -->
+
+    <cache 
+        name="org.hibernate.cache.StandardQueryCache" 
+        maxEntriesLocalHeap="25" 
+        eternal="false"
+        timeToLiveSeconds="120" 
+        overflowToDisk="true" />
+
+</ehcache>
