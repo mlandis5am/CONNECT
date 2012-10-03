@@ -10,19 +10,20 @@
 <!--         overflowToDisk="true" -->
 <!--         statistics="true" /> -->
         
-<!--     <defaultCache  -->
-<!--         maxElementsInMemory="200"  -->
-<!--         eternal="false" -->
-<!--         timeToIdleSeconds="120"  -->
-<!--         timeToLiveSeconds="120"  -->
-<!--         overflowToDisk="true" -->
-<!--         memoryStoreEvictionPolicy="LRU" /> -->
+    <defaultCache 
+        maxElementsInMemory="200" 
+        eternal="false"
+        timeToIdleSeconds="300" 
+        timeToLiveSeconds="600" 
+        overflowToDisk="true"
+        memoryStoreEvictionPolicy="LRU" />
 
     <cache 
-        name="org.hibernate.cache.StandardQueryCache" 
+        name="query.TransactionRepo" 
         maxEntriesLocalHeap="25" 
         eternal="false"
         timeToLiveSeconds="120" 
-        overflowToDisk="true" />
+        overflowToDisk="true" 
+        statistics="true"/>
 
 </ehcache>

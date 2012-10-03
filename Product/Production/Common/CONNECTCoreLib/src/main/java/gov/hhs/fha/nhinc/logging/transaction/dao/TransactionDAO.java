@@ -28,7 +28,6 @@ package gov.hhs.fha.nhinc.logging.transaction.dao;
 
 import java.util.List;
 
-import gov.hhs.fha.nhinc.logging.transaction.model.LastTransactionMessage;
 import gov.hhs.fha.nhinc.logging.transaction.model.TransactionRepo;
 import gov.hhs.fha.nhinc.logging.transaction.persistance.HibernateUtil;
 import gov.hhs.fha.nhinc.nhinclib.NullChecker;
@@ -93,10 +92,6 @@ public final class TransactionDAO {
 
                 session.persist(transactionRepo);
                 
-                // also persist the last transaction associated with the message id...
-                session.persist(new LastTransactionMessage(transactionRepo.getMessageId(), 
-                        transactionRepo.getTransactionId()));
-
                 LOG.info("TransactionRepo Inserted successfully...");
                 tx.commit();
             } catch (HibernateException e) {
@@ -117,6 +112,7 @@ public final class TransactionDAO {
      * @param messageId
      * @return String
      */
+    @SuppressWarnings("unchecked")
     public String getTransactionId(String messageId) {
 
         LOG.debug("TransactionDAO.getTransactionId() - Begin");
@@ -128,16 +124,27 @@ public final class TransactionDAO {
         }
 
         Session session = null;
-        LastTransactionMessage foundRecord = null;
+        List<TransactionRepo> queryList = null;
+        TransactionRepo foundRecord = null;
         String transactionId = null;
         
         try {
 
             SessionFactory sessionFactory = HibernateUtil.getSessionFactory();
             session = sessionFactory.openSession();
-            LOG.info("Getting Record... messageid = " + messageId);
+            LOG.info("Getting Records... messageid = " + messageId);
 
-            foundRecord = (LastTransactionMessage) session.get(LastTransactionMessage.class, messageId);
+            Criteria aCriteria = session.createCriteria(TransactionRepo.class);
+            aCriteria.setCacheable(true);
+            aCriteria.setCacheRegion("query.TransactionRepo");
+            
+            aCriteria.add(Expression.eq("messageId", messageId));
+
+            queryList = aCriteria.list();
+
+            if (queryList != null && !queryList.isEmpty()) {
+                foundRecord = queryList.get(0);
+            }
             
         } catch (Exception e) {
             LOG.error("Exception in getPerfrepository() occured due to :" + e.getMessage(), e);
