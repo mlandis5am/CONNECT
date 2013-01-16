@@ -31,12 +31,14 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+import gov.hhs.fha.nhinc.mail.MailTestUtil;
 import gov.hhs.fha.nhinc.mail.MailUtils;
 import ihe.iti.xds_b._2007.ProvideAndRegisterDocumentSetRequestType.Document;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -315,9 +317,9 @@ public class DirectUnitTestUtil {
     public static String getFileAsString(String filename) {
         String fileAsString = null;
         try {
-            fileAsString =  FileUtils.readFileToString(new File(getClassPath() + filename));
-        } catch (IOException e) {
-            fail(e.getMessage());            
+            fileAsString =  FileUtils.readFileToString(new File(getClassPath(), filename));
+        } catch (Exception e) {
+            fail(e.getMessage());
         }
         return fileAsString;
     }
@@ -333,9 +335,9 @@ public class DirectUnitTestUtil {
      * Used when calling code requires absolute paths to test resources.
      * @return absolute classpath.
      */
-    public static String getClassPath() {
-        return DirectUnitTestUtil.class.getProtectionDomain().getCodeSource().getLocation().getPath();
-    }    
+    public static File getClassPath() throws URISyntaxException {
+    	return new File(DirectUnitTestUtil.class.getProtectionDomain().getCodeSource().getLocation().toURI());
+    }
     
     /**
      * @return mock direct documents.
