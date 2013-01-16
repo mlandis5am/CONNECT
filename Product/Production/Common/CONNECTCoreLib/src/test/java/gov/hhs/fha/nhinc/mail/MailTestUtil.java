@@ -30,6 +30,7 @@ import static org.junit.Assert.fail;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URISyntaxException;
 
 import org.apache.commons.io.FileUtils;
 
@@ -46,9 +47,9 @@ public class MailTestUtil {
     public static String getFileAsString(String filename) {
         String fileAsString = null;
         try {
-            fileAsString =  FileUtils.readFileToString(new File(getClassPath() + filename));
-        } catch (IOException e) {
-            fail(e.getMessage());            
+            fileAsString =  FileUtils.readFileToString(new File(getClassPath(), filename));
+        } catch (Exception e) {
+            fail(e.getMessage());
         }
         return fileAsString;
     }
@@ -57,8 +58,8 @@ public class MailTestUtil {
      * Used when calling code requires absolute paths to test resources.
      * @return absolute classpath.
      */
-    public static String getClassPath() {
-        return MailTestUtil.class.getProtectionDomain().getCodeSource().getLocation().getPath();
-    }    
+    public static File getClassPath() throws URISyntaxException {
+    	return new File(MailTestUtil.class.getProtectionDomain().getCodeSource().getLocation().toURI());
+    }
     
 }
