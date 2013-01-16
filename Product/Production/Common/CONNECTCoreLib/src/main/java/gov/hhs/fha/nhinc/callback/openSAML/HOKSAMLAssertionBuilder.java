@@ -12,8 +12,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.apache.log4j.Logger;
 import org.joda.time.DateTime;
 import org.opensaml.Configuration;
 import org.opensaml.saml2.core.Assertion;
@@ -33,6 +32,7 @@ import org.opensaml.xml.signature.SignatureException;
 import org.opensaml.xml.signature.Signer;
 import org.w3c.dom.Element;
 
+import gov.hhs.fha.nhinc.callback.PurposeOfForDecider;
 import gov.hhs.fha.nhinc.callback.SamlConstants;
 import gov.hhs.fha.nhinc.nhinclib.NullChecker;
 
@@ -42,7 +42,7 @@ import gov.hhs.fha.nhinc.nhinclib.NullChecker;
  */
 public class HOKSAMLAssertionBuilder extends SAMLAssertionBuilder {
 
-    private static Log log = LogFactory.getLog(HOKSAMLAssertionBuilder.class);
+    private static final Logger LOG = Logger.getLogger(HOKSAMLAssertionBuilder.class);
 
 	private final CertificateManager certificateManager;
 
@@ -66,7 +66,7 @@ public class HOKSAMLAssertionBuilder extends SAMLAssertionBuilder {
 	 */
 	@Override
     public Element build(CallbackProperties properties) throws Exception {
-		log.debug("SamlCallbackHandler.createHOKSAMLAssertion20() -- Begin");
+		LOG.debug("SamlCallbackHandler.createHOKSAMLAssertion20() -- Begin");
 		Element signedAssertion = null;
 		try {
 			Assertion assertion = null;
@@ -78,8 +78,8 @@ public class HOKSAMLAssertionBuilder extends SAMLAssertionBuilder {
 			// with a number (UUIDs can). Direction
 			// given from 2011 specification set was to prepend with and
 			// underscore.
-			String aID = ID_PREFIX.concat(String.valueOf(UUID.randomUUID())).replaceAll("-", "");
-			log.debug("Assertion ID: " + aID);
+			String aID = createAssertionId();
+			LOG.debug("Assertion ID: " + aID);
 
 			// set assertion Id
 			assertion.setID(aID);
@@ -110,10 +110,10 @@ public class HOKSAMLAssertionBuilder extends SAMLAssertionBuilder {
 			// sign the message
 			signedAssertion = sign(assertion, certificate, privateKey, publicKey);
 		} catch (Exception ex) {
-			log.error("Unable to create HOK Assertion: " + ex.getMessage());
+			LOG.error("Unable to create HOK Assertion: " + ex.getMessage());
 			throw ex;
 		}
-		log.debug("SamlCallbackHandler.createHOKSAMLAssertion20() -- End");
+		LOG.debug("SamlCallbackHandler.createHOKSAMLAssertion20() -- End");
 		return signedAssertion;
 	}
 
@@ -148,21 +148,21 @@ public class HOKSAMLAssertionBuilder extends SAMLAssertionBuilder {
 
 		String format = properties.getAssertionIssuerFormat();
 		if (format != null) {
-			log.debug("Setting Assertion Issuer format to: " + format);
+			LOG.debug("Setting Assertion Issuer format to: " + format);
 			String sIssuer = properties.getIssuer();
 
-			log.debug("Setting Assertion Issuer to: " + sIssuer);
+			LOG.debug("Setting Assertion Issuer to: " + sIssuer);
 
 			if (isValidNameidFormat(format)) {
 				issuer = OpenSAML2ComponentBuilder.getInstance()
 						.createIssuer(format, sIssuer);
 			} else {
-				log.debug("Not in valid listing of formats: Using default issuer");
+				LOG.debug("Not in valid listing of formats: Using default issuer");
 				issuer = OpenSAML2ComponentBuilder.getInstance()
 						.createDefaultIssuer();
 			}
 		} else {
-			log.debug("Assertion issuer not defined: Using default issuer");
+			LOG.debug("Assertion issuer not defined: Using default issuer");
 			issuer = OpenSAML2ComponentBuilder.getInstance()
 					.createDefaultIssuer();
 		}
@@ -242,7 +242,7 @@ public class HOKSAMLAssertionBuilder extends SAMLAssertionBuilder {
 		}
 		String sessionIndex = properties.getAuthenticationSessionIndex();
 
-		log.debug("Setting Authentication session index to: " + sessionIndex);
+		LOG.debug("Setting Authentication session index to: " + sessionIndex);
 
 		DateTime authInstant = properties.getAuthenticationInstant();
 		if (authInstant == null) {
@@ -313,7 +313,7 @@ public class HOKSAMLAssertionBuilder extends SAMLAssertionBuilder {
 	 * @return The Evidence element
 	 */
 	static Evidence createEvidence(CallbackProperties properties, Subject subject) {
-		log.debug("SamlCallbackHandler.createEvidence() -- Begin");
+		LOG.debug("SamlCallbackHandler.createEvidence() -- Begin");
 		String evAssertionID = properties.getEvidenceID();
 		DateTime issueInstant = properties.getEvidenceInstant();
 		String format = properties.getEvidenceIssuerFormat();
@@ -333,7 +333,7 @@ public class HOKSAMLAssertionBuilder extends SAMLAssertionBuilder {
 
 		List<Assertion> evidenceAssertions = new ArrayList<Assertion>();
 		if (evAssertionID == null) {
-			evAssertionID = ID_PREFIX.concat(String.valueOf(UUID.randomUUID()));
+			evAssertionID = createAssertionId();
 		}
 
 		if (issueInstant == null) {
@@ -386,7 +386,7 @@ public class HOKSAMLAssertionBuilder extends SAMLAssertionBuilder {
 
 		Evidence evidence = OpenSAML2ComponentBuilder.getInstance().createEvidence(evidenceAssertions);
 
-		log.debug("SamlCallbackHandler.createEvidence() -- End");
+		LOG.debug("SamlCallbackHandler.createEvidence() -- End");
 		return evidence;
     }
 
@@ -402,7 +402,7 @@ public class HOKSAMLAssertionBuilder extends SAMLAssertionBuilder {
 	 */
 	static List<AttributeStatement> createEvidenceStatements(
 			CallbackProperties properties) {
-		log.debug("SamlCallbackHandler.createEvidenceStatements() -- Begin");
+		LOG.debug("SamlCallbackHandler.createEvidenceStatements() -- Begin");
 
 		List accessConstentValues = properties.getEvidenceAccessConstent();
 		List evidenceInstanceAccessConsentValues = properties
@@ -415,19 +415,19 @@ public class HOKSAMLAssertionBuilder extends SAMLAssertionBuilder {
             List evidenceInstanceAccessConsentValues) {
         List<AttributeStatement> statements = new ArrayList<AttributeStatement>();
 		if (accessConstentValues == null) {
-			log.debug("No Access Consent found for Evidence");
+			LOG.debug("No Access Consent found for Evidence");
 		}
 
 		// Set the Instance Access Consent
 		if (evidenceInstanceAccessConsentValues == null) {
-			log.debug("No Instance Access Consent found for Evidence");
+			LOG.debug("No Instance Access Consent found for Evidence");
 		}
 
 		statements = OpenSAML2ComponentBuilder.getInstance()
 				.createEvidenceStatements(accessConstentValues,
 						evidenceInstanceAccessConsentValues, NHIN_NS);
 
-		log.debug("SamlCallbackHandler.createEvidenceStatements() -- End");
+		LOG.debug("SamlCallbackHandler.createEvidenceStatements() -- End");
 		return statements;
     }
 
@@ -446,7 +446,7 @@ public class HOKSAMLAssertionBuilder extends SAMLAssertionBuilder {
 		String nameConstruct = properties.getUserFullName();
 
 		if (nameConstruct.length() > 0) {
-			log.debug("UserName: " + nameConstruct);
+			LOG.debug("UserName: " + nameConstruct);
 
 			userNameValues.add(nameConstruct);
 
@@ -454,7 +454,7 @@ public class HOKSAMLAssertionBuilder extends SAMLAssertionBuilder {
 					.createAttribute(null, SamlConstants.USERNAME_ATTR, null,
 							userNameValues));
 		} else {
-			log.warn("No information provided to fill in user name attribute");
+			LOG.warn("No information provided to fill in user name attribute");
 		}
 		if (!attributes.isEmpty()) {
 			statements.addAll(OpenSAML2ComponentBuilder.getInstance()
@@ -518,20 +518,20 @@ public class HOKSAMLAssertionBuilder extends SAMLAssertionBuilder {
 		 * Gateway-347 - Support for both values will remain until NHIN Specs
 		 * updated Determine whether to use PurposeOfUse or PuposeForUse
 		 */
-		if (isPurposeForUseEnabled(properties)) {
-			statements = OpenSAML2ComponentBuilder.getInstance()
-					.createPurposeForUseAttributeStatements(purposeCode, purposeSystem,
-							purposeSystemName, purposeDisplay);
-		} else {
-			statements = OpenSAML2ComponentBuilder.getInstance()
-					.createPurposeOfUseAttributeStatements(purposeCode, purposeSystem,
-							purposeSystemName, purposeDisplay);
-		}
-
-
-
+		
+         // Call out to the purpose decider to determine whether to use purposeofuse or purposeforuse.
+            PurposeOfForDecider pd = new PurposeOfForDecider();                
+            if(pd.isPurposeFor(properties)) {
+                  statements = OpenSAML2ComponentBuilder.getInstance()
+                    .createPurposeForUseAttributeStatements(purposeCode, purposeSystem,
+                            purposeSystemName, purposeDisplay);
+            } else {
+                statements = OpenSAML2ComponentBuilder.getInstance()
+                        .createPurposeOfUseAttributeStatements(purposeCode, purposeSystem,
+                                purposeSystemName, purposeDisplay);
+            } 
+            
 		return statements;
-
 	}
 
 	/**
@@ -546,7 +546,7 @@ public class HOKSAMLAssertionBuilder extends SAMLAssertionBuilder {
 	static List<AttributeStatement> createOrganizationAttributeStatements(
 			CallbackProperties properties) {
 
-		log.debug("SamlCallbackHandler.addAssertStatements() -- Begin");
+		LOG.debug("SamlCallbackHandler.addAssertStatements() -- Begin");
 		List<AttributeStatement> statements = new ArrayList<AttributeStatement>();
 		List<Attribute> attributes = new ArrayList<Attribute>();
 
@@ -563,7 +563,7 @@ public class HOKSAMLAssertionBuilder extends SAMLAssertionBuilder {
 					.createAttributeStatement(attributes));
 		}
 
-		log.debug("SamlCallbackHandler.addAssertStatements() -- End");
+		LOG.debug("SamlCallbackHandler.addAssertStatements() -- End");
 		return statements;
 
 	}
@@ -580,7 +580,7 @@ public class HOKSAMLAssertionBuilder extends SAMLAssertionBuilder {
 	static List<AttributeStatement> createHomeCommunityIdAttributeStatements(
 			CallbackProperties properties) {
 
-		log.debug("SamlCallbackHandler.addAssertStatements() -- Begin");
+		LOG.debug("SamlCallbackHandler.addAssertStatements() -- Begin");
 		List<AttributeStatement> statements = Collections.EMPTY_LIST;
 
 		// Set the Home Community ID Attribute
@@ -591,7 +591,7 @@ public class HOKSAMLAssertionBuilder extends SAMLAssertionBuilder {
 			statements = OpenSAML2ComponentBuilder.getInstance()
 					.createHomeCommunitAttributeStatement(communityId);
 		} else {
-			log.debug("Home Community ID is missing");
+			LOG.debug("Home Community ID is missing");
 		}
 
 		return statements;
@@ -622,9 +622,15 @@ public class HOKSAMLAssertionBuilder extends SAMLAssertionBuilder {
 			statements.addAll(OpenSAML2ComponentBuilder.getInstance()
 					.createAttributeStatement(Arrays.asList(attribute)));
 		} else {
-			log.debug("patient id is missing");
+			LOG.debug("patient id is missing");
 		}
 		return statements;
 
 	}
+	
+	private static String createAssertionId() {
+	    return ID_PREFIX.concat(String.valueOf(UUID.randomUUID())).replaceAll("-", "");
+	    }
+
+	
 }

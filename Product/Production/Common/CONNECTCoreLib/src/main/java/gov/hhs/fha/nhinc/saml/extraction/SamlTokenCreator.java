@@ -28,93 +28,94 @@
  */
 package gov.hhs.fha.nhinc.saml.extraction;
 
+import gov.hhs.fha.nhinc.common.nhinccommon.AssertionType;
+import gov.hhs.fha.nhinc.common.nhinccommon.HomeCommunityType;
+import gov.hhs.fha.nhinc.common.nhinccommon.UserType;
+import gov.hhs.fha.nhinc.nhinclib.NhincConstants;
+import gov.hhs.fha.nhinc.nhinclib.NullChecker;
+
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
-import gov.hhs.fha.nhinc.common.nhinccommon.AssertionType;
-import gov.hhs.fha.nhinc.nhinclib.NhincConstants;
-import gov.hhs.fha.nhinc.nhinclib.NullChecker;
+import org.apache.log4j.Logger;
 
 /**
- *
+ * 
  * @author Jon Hoppesch
  */
 public class SamlTokenCreator {
 
-    private static Log log = LogFactory.getLog(SamlTokenCreator.class);
+    private static final Logger LOG = Logger.getLogger(SamlTokenCreator.class);
 
     /**
      * This method will populate a Map with information from the assertion that is used within the SAML Token. This Map
      * can be used to set up the requestContext prior to sending a message on the Nhin.
-     *
-     * @param assertion The assertion object that contains information required by the SAML Token.
-     * @param url The URL to the destination service.
-     * @param action The specified Action for this message.
+     * 
+     * @param assertion
+     *            The assertion object that contains information required by the SAML Token.
+     * @param url
+     *            The URL to the destination service.
+     * @param action
+     *            The specified Action for this message.
      * @return A Map containing all of the information needed for creation of the SAML Token.
      */
     public Map<String, Object> CreateRequestContext(AssertionType assertion, String url, String action) {
-        log.debug("Entering SamlTokenCreator.CreateRequestContext...");
+        LOG.debug("Entering SamlTokenCreator.CreateRequestContext...");
 
         Map<String, Object> requestContext = new HashMap<String, Object>();
 
         if (assertion != null) {
-            if (assertion.getUserInfo() != null) {
-                if (NullChecker.isNotNullish(assertion.getUserInfo().getUserName())) {
-                    requestContext.put(NhincConstants.USER_NAME_PROP, assertion.getUserInfo().getUserName());
+            UserType userInfo = assertion.getUserInfo();
+            if (userInfo != null) {
+                if (NullChecker.isNotNullish(userInfo.getUserName())) {
+                    requestContext.put(NhincConstants.USER_NAME_PROP, userInfo.getUserName());
                 }
-                if (assertion.getUserInfo().getOrg() != null) {
-                    if (NullChecker.isNotNullish(assertion.getUserInfo().getOrg().getName())) {
-                        requestContext.put(NhincConstants.USER_ORG_PROP, assertion.getUserInfo().getOrg().getName());
+                HomeCommunityType org = userInfo.getOrg();
+                if (org != null) {
+                    String name = org.getName();
+                    if (NullChecker.isNotNullish(name)) {
+                        requestContext.put(NhincConstants.USER_ORG_PROP, name);
                     }
-                    if (NullChecker.isNotNullish(assertion.getUserInfo().getOrg().getHomeCommunityId())) {
-                        requestContext.put(NhincConstants.USER_ORG_ID_PROP, assertion.getUserInfo().getOrg()
-                                .getHomeCommunityId());
+                    if (NullChecker.isNotNullish(org.getHomeCommunityId())) {
+                        requestContext.put(NhincConstants.USER_ORG_ID_PROP, org.getHomeCommunityId());
                     }
                 } else {
-                    log.error("Error: samlSendOperation input assertion user org is null");
+                    LOG.error("Error: samlSendOperation input assertion user org is null");
                 }
-                if (assertion.getUserInfo().getRoleCoded() != null) {
-                    if (NullChecker.isNotNullish(assertion.getUserInfo().getRoleCoded().getCode())) {
-                        requestContext.put(NhincConstants.USER_CODE_PROP, assertion.getUserInfo().getRoleCoded()
-                                .getCode());
+                if (userInfo.getRoleCoded() != null) {
+                    if (NullChecker.isNotNullish(userInfo.getRoleCoded().getCode())) {
+                        requestContext.put(NhincConstants.USER_CODE_PROP, userInfo.getRoleCoded().getCode());
                     }
-                    if (NullChecker.isNotNullish(assertion.getUserInfo().getRoleCoded().getCodeSystem())) {
-                        requestContext.put(NhincConstants.USER_SYST_PROP, assertion.getUserInfo().getRoleCoded()
-                                .getCodeSystem());
+                    if (NullChecker.isNotNullish(userInfo.getRoleCoded().getCodeSystem())) {
+                        requestContext.put(NhincConstants.USER_SYST_PROP, userInfo.getRoleCoded().getCodeSystem());
                     }
-                    if (NullChecker.isNotNullish(assertion.getUserInfo().getRoleCoded().getCodeSystemName())) {
-                        requestContext.put(NhincConstants.USER_SYST_NAME_PROP, assertion.getUserInfo().getRoleCoded()
+                    if (NullChecker.isNotNullish(userInfo.getRoleCoded().getCodeSystemName())) {
+                        requestContext.put(NhincConstants.USER_SYST_NAME_PROP, userInfo.getRoleCoded()
                                 .getCodeSystemName());
                     }
-                    if (NullChecker.isNotNullish(assertion.getUserInfo().getRoleCoded().getDisplayName())) {
-                        requestContext.put(NhincConstants.USER_DISPLAY_PROP, assertion.getUserInfo().getRoleCoded()
-                                .getDisplayName());
+                    if (NullChecker.isNotNullish(userInfo.getRoleCoded().getDisplayName())) {
+                        requestContext.put(NhincConstants.USER_DISPLAY_PROP, userInfo.getRoleCoded().getDisplayName());
                     }
                 } else {
-                    log.error("Error: samlSendOperation input assertion user info role is null");
+                    LOG.error("Error: samlSendOperation input assertion user info role is null");
                 }
-                if (assertion.getUserInfo().getPersonName() != null) {
-                    if (NullChecker.isNotNullish(assertion.getUserInfo().getPersonName().getGivenName())) {
-                        requestContext.put(NhincConstants.USER_FIRST_PROP, assertion.getUserInfo().getPersonName()
-                                .getGivenName());
+                if (userInfo.getPersonName() != null) {
+                    if (NullChecker.isNotNullish(userInfo.getPersonName().getGivenName())) {
+                        requestContext.put(NhincConstants.USER_FIRST_PROP, userInfo.getPersonName().getGivenName());
                     }
-                    if (NullChecker.isNotNullish(assertion.getUserInfo().getPersonName().getSecondNameOrInitials())) {
-                        requestContext.put(NhincConstants.USER_MIDDLE_PROP, assertion.getUserInfo().getPersonName()
+                    if (NullChecker.isNotNullish(userInfo.getPersonName().getSecondNameOrInitials())) {
+                        requestContext.put(NhincConstants.USER_MIDDLE_PROP, userInfo.getPersonName()
                                 .getSecondNameOrInitials());
                     }
-                    if (NullChecker.isNotNullish(assertion.getUserInfo().getPersonName().getFamilyName())) {
-                        requestContext.put(NhincConstants.USER_LAST_PROP, assertion.getUserInfo().getPersonName()
-                                .getFamilyName());
+                    if (NullChecker.isNotNullish(userInfo.getPersonName().getFamilyName())) {
+                        requestContext.put(NhincConstants.USER_LAST_PROP, userInfo.getPersonName().getFamilyName());
                     }
                 } else {
-                    log.error("Error: samlSendOperation input assertion user person name is null");
+                    LOG.error("Error: samlSendOperation input assertion user person name is null");
                 }
             } else {
-                log.error("Error: samlSendOperation input assertion user info is null");
+                LOG.error("Error: samlSendOperation input assertion user info is null");
             }
             if (assertion.getPurposeOfDisclosureCoded() != null) {
                 if (assertion.getPurposeOfDisclosureCoded() != null) {
@@ -135,10 +136,10 @@ public class SamlTokenCreator {
                                 .getDisplayName());
                     }
                 } else {
-                    log.error("Error: samlSendOperation input assertion purpose coded is null");
+                    LOG.error("Error: samlSendOperation input assertion purpose coded is null");
                 }
             } else {
-                log.error("Error: samlSendOperation input assertion purpose is null");
+                LOG.error("Error: samlSendOperation input assertion purpose is null");
             }
             if (assertion.getHomeCommunity() != null) {
                 if (NullChecker.isNotNullish(assertion.getHomeCommunity().getHomeCommunityId())) {
@@ -146,7 +147,7 @@ public class SamlTokenCreator {
                 }
 
             } else {
-                log.error("Error: samlSendOperation input assertion Home Community is null");
+                LOG.error("Error: samlSendOperation input assertion Home Community is null");
             }
             if (assertion.getUniquePatientId() != null && assertion.getUniquePatientId().size() > 0) {
                 // take first non-null item in the List as the identifier
@@ -179,7 +180,7 @@ public class SamlTokenCreator {
                             .getSubjectLocalityDNSName());
                 }
             } else {
-                log.error("Error: samlSendOperation input assertion AuthnStatement is null");
+                LOG.error("Error: samlSendOperation input assertion AuthnStatement is null");
             }
             if (assertion.getSamlAuthzDecisionStatement() != null) {
                 requestContext.put(NhincConstants.AUTHZ_STATEMENT_EXISTS_PROP, "true");
@@ -254,14 +255,14 @@ public class SamlTokenCreator {
                                     .getNotOnOrAfter());
                         }
                     } else {
-                        log.error("Error: samlSendOperation input assertion AuthzDecisionStatement Evidence Conditions is null");
+                        LOG.error("Error: samlSendOperation input assertion AuthzDecisionStatement Evidence Conditions is null");
                     }
                 } else {
-                    log.error("Error: samlSendOperation input assertion AuthzDecisionStatement Evidence is null");
+                    LOG.error("Error: samlSendOperation input assertion AuthzDecisionStatement Evidence is null");
                 }
             } else {
                 requestContext.put(NhincConstants.AUTHZ_STATEMENT_EXISTS_PROP, "false");
-                log.info("AuthzDecisionStatement is null.  It will not be part of the SAML Assertion");
+                LOG.info("AuthzDecisionStatement is null.  It will not be part of the SAML Assertion");
             }
 
             if (assertion.getSamlIssuer() != null) {
@@ -273,10 +274,10 @@ public class SamlTokenCreator {
                             .getIssuerFormat());
                 }
             } else {
-                log.debug("samlSendOperation input assertion Saml Issuer is null");
+                LOG.debug("samlSendOperation input assertion Saml Issuer is null");
             }
         } else {
-            log.error("Error: samlSendOperation input assertion is null");
+            LOG.error("Error: samlSendOperation input assertion is null");
         }
 
         // This will be overwrite any value that is available in
@@ -291,13 +292,15 @@ public class SamlTokenCreator {
             requestContext.put(NhincConstants.ACTION_PROP, action);
         }
 
-        log.info("Request Context:");
-        Set allKeys = requestContext.keySet();
-        for (Object key : allKeys) {
-            log.info(key + " = " + requestContext.get(key));
+        if (LOG.isTraceEnabled()) {
+            LOG.trace("Request Context:");
+            Set<String> allKeys = requestContext.keySet();
+            for (String key : allKeys) {
+                LOG.trace(key + " = " + requestContext.get(key));
+            }
         }
 
-        log.debug("Exiting SamlTokenCreator.CreateRequestContext...");
+        LOG.debug("Exiting SamlTokenCreator.CreateRequestContext...");
         return requestContext;
     }
 }

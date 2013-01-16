@@ -29,12 +29,14 @@ package gov.hhs.fha.nhinc.docretrieve.adapter.proxy;
 import ihe.iti.xds_b._2007.RetrieveDocumentSetRequestType;
 import ihe.iti.xds_b._2007.RetrieveDocumentSetResponseType;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.apache.log4j.Logger;
 
 import gov.hhs.fha.nhinc.adapterdocretrievesecured.AdapterDocRetrieveSecuredPortType;
+import gov.hhs.fha.nhinc.aspect.AdapterDelegationEvent;
 import gov.hhs.fha.nhinc.common.nhinccommon.AssertionType;
 import gov.hhs.fha.nhinc.docretrieve.adapter.proxy.service.AdapterDocRetrieveSecuredServicePortDescriptor;
+import gov.hhs.fha.nhinc.docretrieve.aspect.RetrieveDocumentSetRequestTypeDescriptionBuilder;
+import gov.hhs.fha.nhinc.docretrieve.aspect.RetrieveDocumentSetResponseTypeDescriptionBuilder;
 import gov.hhs.fha.nhinc.messaging.client.CONNECTCXFClientFactory;
 import gov.hhs.fha.nhinc.messaging.client.CONNECTClient;
 import gov.hhs.fha.nhinc.messaging.service.port.ServicePortDescriptor;
@@ -49,24 +51,8 @@ import gov.hhs.fha.nhinc.webserviceproxy.WebServiceProxyHelper;
  */
 public class AdapterDocRetrieveProxyWebServiceSecuredImpl implements AdapterDocRetrieveProxy {
 
-    private Log log = null;
+    private static final Logger LOG = Logger.getLogger(AdapterDocRetrieveProxyWebServiceSecuredImpl.class);
     private final WebServiceProxyHelper oProxyHelper = new WebServiceProxyHelper();
-
-    /**
-     * Default constructor.
-     */
-    public AdapterDocRetrieveProxyWebServiceSecuredImpl() {
-        log = createLogger();
-    }
-
-    /**
-     * Creates the log object for logging.
-     *
-     * @return The log object.
-     */
-    protected Log createLogger() {
-        return ((log != null) ? log : LogFactory.getLog(getClass()));
-    }
 
     /**
      * Retrieve the document(s)
@@ -76,6 +62,9 @@ public class AdapterDocRetrieveProxyWebServiceSecuredImpl implements AdapterDocR
      * @return The document(s) that were retrieved.
      */
     @Override
+    @AdapterDelegationEvent(beforeBuilder = RetrieveDocumentSetRequestTypeDescriptionBuilder.class,
+    afterReturningBuilder = RetrieveDocumentSetResponseTypeDescriptionBuilder.class, 
+    serviceType = "Retrieve Document", version = "")
     public RetrieveDocumentSetResponseType retrieveDocumentSet(RetrieveDocumentSetRequestType request,
             AssertionType assertion) {
         String url = null;
@@ -84,25 +73,26 @@ public class AdapterDocRetrieveProxyWebServiceSecuredImpl implements AdapterDocR
 
         try {
             if (request != null) {
-                log.debug("Before target system URL look up.");
+                LOG.debug("Before target system URL look up.");
 
                 url = oProxyHelper.getAdapterEndPointFromConnectionManager(sServiceName);
-                log.debug("After target system URL look up. URL for service: " + sServiceName + " is: " + url);
+                LOG.debug("After target system URL look up. URL for service: " + sServiceName + " is: " + url);
 
                 if (NullChecker.isNotNullish(url)) {
-                    ServicePortDescriptor<AdapterDocRetrieveSecuredPortType> portDescriptor = new AdapterDocRetrieveSecuredServicePortDescriptor();
+                    ServicePortDescriptor<AdapterDocRetrieveSecuredPortType> portDescriptor = 
+                            new AdapterDocRetrieveSecuredServicePortDescriptor();
                     CONNECTClient<AdapterDocRetrieveSecuredPortType> client = getCONNECTClientSecured(portDescriptor,
                             url, assertion);
                     response = (RetrieveDocumentSetResponseType) client.invokePort(
                             AdapterDocRetrieveSecuredPortType.class, "respondingGatewayCrossGatewayRetrieve", request);
                 } else {
-                    log.error("Failed to call the web service (" + sServiceName + ").  The URL is null.");
+                    LOG.error("Failed to call the web service (" + sServiceName + ").  The URL is null.");
                 }
             } else {
-                log.error("Failed to call the web service (" + sServiceName + ").  The input parameter is null.");
+                LOG.error("Failed to call the web service (" + sServiceName + ").  The input parameter is null.");
             }
         } catch (Exception e) {
-            log.error("Failed to call the web service (" + sServiceName + ").  An unexpected exception occurred.  "
+            LOG.error("Failed to call the web service (" + sServiceName + ").  An unexpected exception occurred.  "
                     + "Exception: " + e.getMessage(), e);
         }
 

@@ -26,25 +26,20 @@
  */
 package gov.hhs.fha.nhinc.gateway.aggregator.dao;
 
+import gov.hhs.fha.nhinc.gateway.aggregator.AggregatorException;
+import gov.hhs.fha.nhinc.gateway.aggregator.model.AggTransaction;
+import gov.hhs.fha.nhinc.gateway.aggregator.persistence.HibernateUtil;
+
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-import java.text.SimpleDateFormat;
+import org.apache.log4j.Logger;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
-import gov.hhs.fha.nhinc.gateway.aggregator.model.AggTransaction;
-
-import gov.hhs.fha.nhinc.gateway.aggregator.persistence.HibernateUtil;
-
-import gov.hhs.fha.nhinc.gateway.aggregator.AggregatorException;
-
-import java.util.ArrayList;
+import org.hibernate.Query;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
-import org.hibernate.Criteria;
-import org.hibernate.criterion.Expression;
 
 /**
  * This class is responsible for the persistence of data into the AGGREGATOR.AGG_TRANSACTION table and also for
@@ -53,7 +48,7 @@ import org.hibernate.criterion.Expression;
  * @author Les Westberg
  */
 public class AggTransactionDao {
-    private static Log log = LogFactory.getLog(AggTransactionDao.class);
+    private static final Logger LOG = Logger.getLogger(AggTransactionDao.class);
 
     /**
      * Default constructor
@@ -65,7 +60,8 @@ public class AggTransactionDao {
      * This method saves the specified data into the AGGREGATOR.AGG_TRANSACTION and AGGREGATOR_AGG_MESSAGE_RESULTS
      * tables and if this is a new transaction, it will assign a new transaction ID..
      * 
-     * @param aggTransaction The data to be written to the table.
+     * @param aggTransaction
+     *            The data to be written to the table.
      */
     public void save(AggTransaction oAggTransaction) {
 
@@ -75,7 +71,7 @@ public class AggTransactionDao {
             sTransactionId = oAggTransaction.getTransactionId();
         }
 
-        log.debug("Performing AggTransaction save for TransactionId: "
+        LOG.debug("Performing AggTransaction save for TransactionId: "
                 + ((sTransactionId.length() == 0) ? "New Record" : sTransactionId));
 
         HibernateUtil.save(oAggTransaction, sTransactionId, "TransactionId");
@@ -86,18 +82,19 @@ public class AggTransactionDao {
      * Delete a row in the AGGREGATOR.AGG_TRANSACTION table along with the corresponding entries in the
      * AGGREGATOR.AGG_MESSAGE_RESULTS table.
      * 
-     * @param document Document to delete
+     * @param document
+     *            Document to delete
      */
     public void delete(AggTransaction oAggTransaction) {
         String sTransactionId = null;
         if (oAggTransaction != null) {
             sTransactionId = oAggTransaction.getTransactionId();
         } else {
-            log.warn("Attempt to delete AggTransaction but the value was null.");
+            LOG.warn("Attempt to delete AggTransaction but the value was null.");
             return; // there is nothing to delete.
         }
 
-        log.debug("Performing AggTransaction delete for TransactionId: " + sTransactionId);
+        LOG.debug("Performing AggTransaction delete for TransactionId: " + sTransactionId);
 
         HibernateUtil.delete(oAggTransaction, sTransactionId, "TransactionId");
 
@@ -106,11 +103,12 @@ public class AggTransactionDao {
     /**
      * Retrieve a record by identifier (TransactionId)
      * 
-     * @param sTransactionId Transaction ID for the transaction being returned.
+     * @param sTransactionId
+     *            Transaction ID for the transaction being returned.
      * @return Retrieved transaction.
      */
     public AggTransaction findById(String sTransactionId) {
-        log.debug("Performing AggTransaction findById for TransactionId: " + sTransactionId);
+        LOG.debug("Performing AggTransaction findById for TransactionId: " + sTransactionId);
 
         AggTransaction oAggTransaction = (AggTransaction) HibernateUtil.findById(AggTransaction.class, sTransactionId,
                 sTransactionId, "TransactionId");
@@ -121,27 +119,27 @@ public class AggTransactionDao {
     /**
      * Retrieve records that are older than the specified date and time.
      * 
-     * @param dtDateTime The date in time in which we want to retrieve older records.
+     * @param dtDateTime
+     *            The date in time in which we want to retrieve older records.
      * @return The set of transactions that were retrieved.
-     * @throws AggregatorException This exception is thrown if there is an error message.
+     * @throws AggregatorException
+     *             This exception is thrown if there is an error message.
      */
     @SuppressWarnings("unchecked")
-    // Occurs because of olAggTransaction = oCriteria.list(); - but it is safe so suppress the warning
+    // Occurs because of olAggTransaction = query.list(); - but it is safe so suppress the warning
     public AggTransaction[] findOlderThan(Date dtDateTime) throws AggregatorException {
         List<AggTransaction> olAggTransaction = new ArrayList<AggTransaction>();
         SimpleDateFormat oFormat = new SimpleDateFormat("MM/dd/yyyy.HH:mm:ss");
 
-        String sDateTime = "";
-        if (sDateTime != null) {
-            sDateTime = oFormat.format(dtDateTime);
-        } else {
+        String sDateTime = oFormat.format(dtDateTime);
+        if (sDateTime == null) {
             String sErrorMessage = "AggTransactionDao.findOlderThan(dtDateTime) must be called with a valid date/time but dtDateTime was null.";
-            log.error(sErrorMessage);
+            LOG.error(sErrorMessage);
             throw new AggregatorException(sErrorMessage);
         }
 
-        if (log.isDebugEnabled()) {
-            log.debug("Performing AggTransactionDao.findOlderThan(" + sDateTime + ").");
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Performing AggTransactionDao.findOlderThan(" + sDateTime + ").");
         }
 
         Session oSession = null;
@@ -150,19 +148,19 @@ public class AggTransactionDao {
             if (oSessionFactory != null) {
                 oSession = oSessionFactory.openSession();
                 if (oSession != null) {
-                    Criteria oCriteria = oSession.createCriteria(AggTransaction.class);
-                    oCriteria.add(Expression.le("transactionStartTime", dtDateTime));
-                    olAggTransaction = oCriteria.list();
+                    Query query = oSession.getNamedQuery("findOlderThan");
+                    query.setParameter("transactionStartTime", dtDateTime);
+                    olAggTransaction = query.list();
                 } else {
-                    log.error("Failed to obtain a session from the sessionFactory " + "while calling findOlderThan("
+                    LOG.error("Failed to obtain a session from the sessionFactory " + "while calling findOlderThan("
                             + sDateTime + ").  ");
                 }
             } else {
-                log.error("Session factory was null while calling findOlderThan(" + sDateTime + ").");
+                LOG.error("Session factory was null while calling findOlderThan(" + sDateTime + ").");
             }
 
-            if (log.isDebugEnabled()) {
-                log.debug("Completed AggTransactionDao.findOlderThan(" + sDateTime + ").  " + "Result was: "
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Completed AggTransactionDao.findOlderThan(" + sDateTime + ").  " + "Result was: "
                         + (((olAggTransaction == null) && (olAggTransaction.size() > 0)) ? "not " : "") + "found");
             }
         } finally {
@@ -170,7 +168,7 @@ public class AggTransactionDao {
                 try {
                     oSession.close();
                 } catch (Throwable t) {
-                    log.error("Failed to close session" + "while calling findOlderThan(" + sDateTime + ").  "
+                    LOG.error("Failed to close session" + "while calling findOlderThan(" + sDateTime + ").  "
                             + "Message: " + t.getMessage(), t);
                 }
             }

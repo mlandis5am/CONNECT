@@ -26,13 +26,20 @@
  */
 package gov.hhs.fha.nhinc.patientdiscovery.nhin.proxy;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.fail;
+import gov.hhs.fha.nhinc.aspect.NwhinInvocationEvent;
+import gov.hhs.fha.nhinc.common.nhinccommon.AssertionType;
+import gov.hhs.fha.nhinc.common.nhinccommon.NhinTargetSystemType;
+import gov.hhs.fha.nhinc.patientdiscovery.aspect.PRPAIN201305UV02EventDescriptionBuilder;
+import gov.hhs.fha.nhinc.patientdiscovery.aspect.PRPAIN201306UV02EventDescriptionBuilder;
 import ihe.iti.xcpd._2009.RespondingGatewayPortType;
+
+import java.lang.reflect.Method;
 
 import javax.xml.ws.Service;
 
-import org.apache.commons.logging.Log;
+import org.hl7.v3.PRPAIN201305UV02;
 import org.jmock.Mockery;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
@@ -57,7 +64,6 @@ public class NhinPatientDiscoveryProxyWebServiceSecuredImplTest {
             setImposteriser(ClassImposteriser.INSTANCE);
         }
     };
-    final Log mockLog = context.mock(Log.class);
     final Service mockService = context.mock(Service.class);
     final RespondingGatewayPortType mockPort = context.mock(RespondingGatewayPortType.class);
 
@@ -79,24 +85,19 @@ public class NhinPatientDiscoveryProxyWebServiceSecuredImplTest {
     @After
     public void tearDown() {
     }
-
+    
     @Test
-    public void testCreateLogger() {
-        try {
-            NhinPatientDiscoveryProxyWebServiceSecuredImpl sut = new NhinPatientDiscoveryProxyWebServiceSecuredImpl() {
-                @Override
-                protected Log createLogger() {
-                    return mockLog;
-                }
-
-            };
-            Log log = sut.createLogger();
-            assertNotNull("Log was null", log);
-        } catch (Throwable t) {
-            System.out.println("Error running testCreateLogger test: " + t.getMessage());
-            t.printStackTrace();
-            fail("Error running testCreateLogger test: " + t.getMessage());
-        }
+    public void hasNwhinInvocationEvent() throws Exception {
+        Class<NhinPatientDiscoveryProxyWebServiceSecuredImpl> clazz = 
+                NhinPatientDiscoveryProxyWebServiceSecuredImpl.class;
+        Method method = clazz.getMethod("respondingGatewayPRPAIN201305UV02", PRPAIN201305UV02.class,
+                AssertionType.class, NhinTargetSystemType.class);
+        NwhinInvocationEvent annotation = method.getAnnotation(NwhinInvocationEvent.class);
+        assertNotNull(annotation);
+        assertEquals(PRPAIN201305UV02EventDescriptionBuilder.class, annotation.beforeBuilder());
+        assertEquals(PRPAIN201306UV02EventDescriptionBuilder.class, annotation.afterReturningBuilder());
+        assertEquals("Patient Discovery", annotation.serviceType());
+        assertEquals("1.0", annotation.version());
     }
 
 }

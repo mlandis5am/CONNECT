@@ -29,7 +29,7 @@
             <sys:filter>javax.xml.ws</sys:filter>
             <sys:filter>javax.xml.soap</sys:filter>
             <sys:filter>javax.xml.crypto</sys:filter>
-            <sys:filter>javax.xml.stream</sys:filter>
+            <sys:filter>com.sun.xml.messaging</sys:filter>
             <sys:filter>org.springframework</sys:filter>
             <sys:filter>antlr</sys:filter>
             <sys:filter>net.sf.cglib</sys:filter>
@@ -37,6 +37,7 @@
             <sys:filter>org.objectweb.asm</sys:filter>
             <sys:filter>com.ctc.wstx</sys:filter>
             <sys:filter>org.codehaus.stax2</sys:filter>
+            <sys:filter>org.uddi.api_v3</sys:filter>
         </sys:hidden-classes>
 
         <sys:inverse-classloading />

@@ -16,6 +16,7 @@ Tie a health information exchange into a regional network of health information 
 By advancing the adoption of interoperable health IT systems and health information exchanges, the country will better be able to achieve the goal of making sure all citizens have electronic health records by 2014. Health data will be able to follow a patient across the street or across the country.</description>
     <properties>
         <git.username>CONNECT-Solution</git.username>
+        <connectdir>${basedir}</connectdir>
     </properties>
     <scm>
         <connection>scm:git:git@github.com:${git.username}/CONNECT.git</connection>
@@ -23,8 +24,8 @@ By advancing the adoption of interoperable health IT systems and health informat
         <url>https://github.com/${git.username}/CONNECT</url>
     </scm>
     <modules>
-        <module>ThirdParty</module>
-        <module>Product</module>
+    	<module>ThirdParty</module>
+    	<module>Product</module>
     </modules>
     <licenses>
         <license>
@@ -104,6 +105,11 @@ By advancing the adoption of interoperable health IT systems and health informat
                             <configuration>
                                 <targetJdk>1.7</targetJdk>
                             </configuration>
+                        </plugin>
+                        <plugin>
+                            <groupId>org.codehaus.mojo</groupId>
+                            <artifactId>findbugs-maven-plugin</artifactId>
+                            <version>2.5.2</version>
                         </plugin>
                     </reportPlugins>
                 </configuration>

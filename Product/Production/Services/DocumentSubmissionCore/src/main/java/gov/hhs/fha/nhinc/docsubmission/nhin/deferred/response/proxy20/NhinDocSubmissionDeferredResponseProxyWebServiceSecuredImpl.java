@@ -26,9 +26,12 @@
  */
 package gov.hhs.fha.nhinc.docsubmission.nhin.deferred.response.proxy20;
 
+import gov.hhs.fha.nhinc.aspect.NwhinInvocationEvent;
 import gov.hhs.fha.nhinc.common.nhinccommon.AssertionType;
 import gov.hhs.fha.nhinc.common.nhinccommon.NhinTargetSystemType;
 import gov.hhs.fha.nhinc.docsubmission.MessageGeneratorUtils;
+import gov.hhs.fha.nhinc.docsubmission.aspect.DeferredResponseDescriptionBuilder;
+import gov.hhs.fha.nhinc.docsubmission.aspect.DocSubmissionBaseEventDescriptionBuilder;
 import gov.hhs.fha.nhinc.docsubmission.nhin.deferred.response.proxy20.service.NhinDocSubmissionDeferredResponseServicePortDescriptor;
 import gov.hhs.fha.nhinc.messaging.client.CONNECTCXFClientFactory;
 import gov.hhs.fha.nhinc.messaging.client.CONNECTClient;
@@ -38,13 +41,11 @@ import gov.hhs.fha.nhinc.nhinclib.NhincConstants.GATEWAY_API_LEVEL;
 import gov.hhs.fha.nhinc.webserviceproxy.WebServiceProxyHelper;
 import ihe.iti.xdr._2007.XDRDeferredResponse20PortType;
 
-import javax.xml.ws.BindingProvider;
 import javax.xml.ws.Holder;
 
 import oasis.names.tc.ebxml_regrep.xsd.rs._3.RegistryResponseType;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.apache.log4j.Logger;
 
 /**
  * 
@@ -52,16 +53,11 @@ import org.apache.commons.logging.LogFactory;
  */
 public class NhinDocSubmissionDeferredResponseProxyWebServiceSecuredImpl implements
         NhinDocSubmissionDeferredResponseProxy {
-    private Log log = null;
+    private static final Logger LOG = Logger.getLogger(NhinDocSubmissionDeferredResponseProxyWebServiceSecuredImpl.class);
     private WebServiceProxyHelper oProxyHelper = null;
 
     public NhinDocSubmissionDeferredResponseProxyWebServiceSecuredImpl() {
-        log = createLogger();
         oProxyHelper = createWebServiceProxyHelper();
-    }
-
-    protected Log createLogger() {
-        return LogFactory.getLog(getClass());
     }
 
     protected WebServiceProxyHelper createWebServiceProxyHelper() {
@@ -73,14 +69,19 @@ public class NhinDocSubmissionDeferredResponseProxyWebServiceSecuredImpl impleme
     }
 
     protected CONNECTClient<XDRDeferredResponse20PortType> getCONNECTClientSecured(
-            ServicePortDescriptor<XDRDeferredResponse20PortType> portDescriptor, String url, AssertionType assertion) {
+            ServicePortDescriptor<XDRDeferredResponse20PortType> portDescriptor, String url, AssertionType assertion,
+             String target, String serviceName) {
 
-        return CONNECTCXFClientFactory.getInstance().getCONNECTClientSecured(portDescriptor, url, assertion);
+        return CONNECTCXFClientFactory.getInstance().getCONNECTClientSecured(portDescriptor, assertion, url, target,
+                serviceName);
     }
 
+    @NwhinInvocationEvent(beforeBuilder = DeferredResponseDescriptionBuilder.class,
+            afterReturningBuilder = DocSubmissionBaseEventDescriptionBuilder.class,
+            serviceType = "Document Submission Deferred Response", version = "")
     public RegistryResponseType provideAndRegisterDocumentSetBDeferredResponse20(RegistryResponseType request,
             AssertionType assertion, NhinTargetSystemType target) {
-        log.debug("Begin provideAndRegisterDocumentSetBDeferredResponse");
+        LOG.debug("Begin provideAndRegisterDocumentSetBDeferredResponse");
         RegistryResponseType response = null;
 
         try {
@@ -88,7 +89,7 @@ public class NhinDocSubmissionDeferredResponseProxyWebServiceSecuredImpl impleme
                     NhincConstants.NHINC_XDR_RESPONSE_SERVICE_NAME, GATEWAY_API_LEVEL.LEVEL_g1);
 
             if (request == null) {
-                log.error("Message was null");
+                LOG.error("Message was null");
             } else {
                 Holder<RegistryResponseType> respHolder = new Holder<RegistryResponseType>();
                 respHolder.value = request;
@@ -96,11 +97,7 @@ public class NhinDocSubmissionDeferredResponseProxyWebServiceSecuredImpl impleme
                 ServicePortDescriptor<XDRDeferredResponse20PortType> portDescriptor = new NhinDocSubmissionDeferredResponseServicePortDescriptor();
 
                 CONNECTClient<XDRDeferredResponse20PortType> client = getCONNECTClientSecured(portDescriptor, url,
-                        assertion);
-
-                WebServiceProxyHelper wsHelper = new WebServiceProxyHelper();
-                wsHelper.addTargetCommunity((BindingProvider) client.getPort(), target);
-                wsHelper.addServiceName((BindingProvider) client.getPort(),
+                        assertion, target.getHomeCommunity().getHomeCommunityId(), 
                         NhincConstants.NHINC_XDR_RESPONSE_SERVICE_NAME);
 
                 client.invokePort(XDRDeferredResponse20PortType.class,
@@ -108,13 +105,13 @@ public class NhinDocSubmissionDeferredResponseProxyWebServiceSecuredImpl impleme
                 response = respHolder.value;
             }
         } catch (Exception ex) {
-            log.error("Error calling provideAndRegisterDocumentSetBDeferredResponse: " + ex.getMessage(), ex);
+            LOG.error("Error calling provideAndRegisterDocumentSetBDeferredResponse: " + ex.getMessage(), ex);
 
             response = getMessageGeneratorUtils().createRegistryErrorResponse(ex.getMessage(), "XDSRegistryError",
                     NhincConstants.XDR_ACK_FAILURE_STATUS_MSG);
         }
 
-        log.debug("End provideAndRegisterDocumentSetBDeferredResponse");
+        LOG.debug("End provideAndRegisterDocumentSetBDeferredResponse");
         return response;
     }
 

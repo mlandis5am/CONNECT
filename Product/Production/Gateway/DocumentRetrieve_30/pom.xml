@@ -43,6 +43,13 @@
             <version>${project.parent.version}</version>
         </dependency>
         <dependency>
+            <groupId>org.connectopensource</groupId>
+            <artifactId>DocumentRetrieveCore</artifactId>
+            <version>${project.parent.version}</version>
+            <type>test-jar</type>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
               <groupId>javax</groupId>
               <artifactId>javaee-api</artifactId>
               <version>6.0</version>
@@ -98,10 +105,45 @@
             <version>1.6.4</version>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-test</artifactId>
+        </dependency>   
     </dependencies>
     <build>
         <finalName>${project.artifactId}</finalName>
         <plugins>
+            <plugin>
+                <!-- Used to pull gateway.properties file from the shared 
+                    resource JAR -->
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <version>2.5.1</version>
+                <executions>
+                    <execution>
+                        <id>unpack-test-resources</id>
+                        <!-- Using the initialize phase because it is before 
+                            the generate sources phase -->
+                        <phase>initialize</phase>
+                        <goals>
+                            <goal>unpack</goal>
+                        </goals>
+                        <configuration>
+                            <artifactItems>
+                                <artifactItem>
+                                    <!-- Artifact that Holds our custom templates -->
+                                    <groupId>org.connectopensource</groupId>
+                                    <artifactId>Properties</artifactId>
+                                    <version>${project.parent.version}</version>
+                                    <type>jar</type>
+                                </artifactItem>
+                            </artifactItems>
+                            <includes>AuditRepositoryProxyConfig.xml</includes>
+                            <outputDirectory>${project.build.directory}/test-classes/</outputDirectory>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
             <plugin>
                 <artifactId>maven-war-plugin</artifactId>
                 <version>2.2</version>

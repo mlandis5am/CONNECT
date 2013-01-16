@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<con:soapui-project abortOnError="false" name="DocQueryTestsForUDDI" resourceRoot="" runType="SEQUENTIAL" soapui-version="3.5.1" xmlns:con="http://eviware.com/soapui/config">
+<con:soapui-project abortOnError="false" name="DocQueryTestsForUDDI" resourceRoot="${projectDir}" runType="SEQUENTIAL" soapui-version="4.5.1" activeEnvironment="Default" xmlns:con="http://eviware.com/soapui/config">
   <con:description/><con:settings/>
-  <con:interface anonymous="optional" bindingName="{urn:gov:hhs:fha:nhinc:entitydocquery}EntityDocQueryBindingSoap" definition="WSDL path not set.  #EntityDocQuery.wsdl" name="EntityDocQueryBindingSoap" soapVersion="1_2" type="wsdl" wsaVersion="NONE" xsi:type="con:WsdlInterface" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <con:interface anonymous="optional" bindingName="{urn:gov:hhs:fha:nhinc:entitydocquery}EntityDocQueryBindingSoap" definition="${projectDir}/../ValidationSuite/target/wsdl/EntityDocQuery.wsdl" name="EntityDocQueryBindingSoap" soapVersion="1_2" type="wsdl" wsaVersion="NONE" xsi:type="con:WsdlInterface" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
     <con:settings/>
     
     <con:endpoints>
@@ -16,17 +16,7 @@
       <con:settings/>
     </con:operation>
   </con:interface>
-  <con:interface anonymous="optional" bindingName="{urn:gov:hhs:fha:nhinc:nhincdocquery}NhincDocQueryPortTypeBinding" definition="WSDL path not set.  #NhincDocQuery.wsdl" name="NhincDocQueryPortTypeBinding" soapVersion="1_2" type="wsdl" wsaVersion="NONE" xsi:type="con:WsdlInterface" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-    <con:settings/>
-    
-    <con:endpoints>
-      <con:endpoint>http://localhost:${HttpDefaultPort}/CONNECTAdapter/NhincDocQuery</con:endpoint>
-      <con:endpoint>http://localhost:${HttpDefaultPort}/NhinConnect/NhincDocQuery</con:endpoint>
-    </con:endpoints>
-    <con:operation action="RespondingGateway_CrossGatewayQuery" anonymous="optional" bindingOperationName="RespondingGateway_CrossGatewayQuery" inputName="CrossGatewayQueryRequest" isOneWay="false" name="RespondingGateway_CrossGatewayQuery" outputName="CrossGatewayQueryResponse" receivesAttachments="false" sendsAttachments="false" type="Request-Response">
-      <con:settings/>
-    </con:operation>
-  </con:interface>
+  
   <con:testSuite name="DocQueryTestsForUDDI TestSuite">
     <con:settings/>
     <con:runType>SEQUENTIAL</con:runType>
@@ -46,18 +36,17 @@ def projectPropPath = groovyUtils.projectPath
 def sourceDir = projectPropPath;
 def sourceFile = "UDDIcopy-uddiConnectionInfo.xml";
 //def destDir = context.findProperty( "NHINGatewayConfigDir" );
-def destDir = System.env['NHINC_PROPERTIES_DIR'];
+def destDir = context.findProperty("GatewayPropDir");
 def destFile = "uddiConnectionInfo.xml";
 
 log.info(sourceDir +'; ' + sourceFile  +'; ' + destDir +'; ' + destFile );
 
-FileUtils.MoveFile(sourceDir, sourceFile, destDir, destFile, context, log);</script></con:config>
+FileUtils.copyFile(sourceDir, sourceFile, destDir, destFile, log);</script></con:config>
       </con:testStep>
       <con:testStep name="update config" type="groovy">
         <con:settings/>
-        <con:config>
-          <script>//def destConfigFileLocation = dataSource.getPropertyValue("NHINGatewayConfigDir");
-def destConfigFileLocation = System.env['NHINC_PROPERTIES_DIR'];
+        <con:config><script>//def destConfigFileLocation = dataSource.getPropertyValue("NHINGatewayConfigDir");
+def destConfigFileLocation = context.findProperty("GatewayPropDir");
 
 void UpdateProperty(String directory, String filename, String propertyKey, String propertyValue,context,log) {
 			  
@@ -72,8 +61,7 @@ void UpdateProperty(String directory, String filename, String propertyKey, Strin
    properties = null;
 }
 
-UpdateProperty(destConfigFileLocation,"gateway.properties","documentQueryQuerySelf","false",context,log);</script>
-        </con:config>
+nhinc.FileUtils.updateProperty(destConfigFileLocation,"gateway.properties","documentQueryQuerySelf","false",log);</script></con:config>
       </con:testStep>
       <con:testStep name="Generate patient ID for Doc Query" type="groovy">
         <con:settings/>
@@ -167,8 +155,6 @@ context.testCase.setPropertyValue('FullPatientID', "'${dqPatientID}^^^&amp;amp;$
                <urn3:zipCode>AddrZip</urn3:zipCode>
             </urn3:address>
             <urn3:dateOfBirth xmlns:urn1="urn:gov:hhs:fha:nhinc:common:nhinccommon">06/04/1959 05:21:00</urn3:dateOfBirth>
-            <urn3:dateOfSignature xmlns:urn1="urn:gov:hhs:fha:nhinc:common:nhinccommon">${#Project#sigDate}</urn3:dateOfSignature>
-            <urn3:expirationDate xmlns:urn1="urn:gov:hhs:fha:nhinc:common:nhinccommon">${#Project#expireDate}</urn3:expirationDate>
             <urn3:explanationNonClaimantSignature xmlns:urn1="urn:gov:hhs:fha:nhinc:common:nhinccommon">Electronic</urn3:explanationNonClaimantSignature>
             <urn3:haveSecondWitnessSignature xmlns:urn1="urn:gov:hhs:fha:nhinc:common:nhinccommon">false</urn3:haveSecondWitnessSignature>
             <urn3:haveSignature xmlns:urn1="urn:gov:hhs:fha:nhinc:common:nhinccommon">false</urn3:haveSignature>
@@ -206,7 +192,6 @@ context.testCase.setPropertyValue('FullPatientID', "'${dqPatientID}^^^&amp;amp;$
                   <urn3:originalText>phoneCode</urn3:originalText>
                </urn3:phoneNumberType>
             </urn3:phoneNumber>
-            <urn3:purposeOfDisclosure xmlns:urn1="urn:gov:hhs:fha:nhinc:common:nhinccommon">TREATMENT</urn3:purposeOfDisclosure>
             <urn3:secondWitnessAddress xmlns:urn1="urn:gov:hhs:fha:nhinc:common:nhinccommon">
                <urn3:addressType>
                   <urn3:code>AddrCode</urn3:code>
@@ -311,7 +296,6 @@ context.testCase.setPropertyValue('FullPatientID', "'${dqPatientID}^^^&amp;amp;$
                   <urn3:fullName>Kasrl S. Skagerberg</urn3:fullName>
                </urn3:personName>
                <urn3:userName>kskagerb</urn3:userName>
-               <urn3:role>Pharmacy</urn3:role>
                <urn3:org>
                   <urn3:description>${#Project#LocalHCDescription}</urn3:description>
                   <urn3:homeCommunityId>${#Project#LocalHCID}</urn3:homeCommunityId>
@@ -335,8 +319,8 @@ context.testCase.setPropertyValue('FullPatientID', "'${dqPatientID}^^^&amp;amp;$
                <urn3:displayName>Use or disclosure of Psychotherapy Notes</urn3:displayName>
                <urn3:originalText>Use or disclosure of Psychotherapy Notes</urn3:originalText>
             </urn3:purposeOfDisclosureCoded>
-            <urn3:claimFormRef>Ref-Clm-123</urn3:claimFormRef>
-            <urn3:claimFormRaw>YWVvbGlhbQ==</urn3:claimFormRaw>
+            <!--urn3:claimFormRef>Ref-Clm-123</urn3:claimFormRef-->
+            <!--urn3:claimFormRaw>YWVvbGlhbQ==</urn3:claimFormRaw-->
             <urn3:samlAuthnStatement xmlns:urn1="urn:gov:hhs:fha:nhinc:common:nhinccommon">
                <urn3:authInstant>2009-04-16T13:15:39Z</urn3:authInstant>
                <urn3:sessionIndex>987</urn3:sessionIndex>
@@ -411,28 +395,28 @@ declare namespace ns15='urn:oasis:names:tc:ebxml-regrep:xsd:rs:3.0';
                 <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
               </con:configuration>
             </con:assertion>
-            <con:jmsConfig JMSDeliveryMode="PERSISTENT"/><con:jmsPropertyConfig/><con:wsaConfig mustUnderstand="NONE" version="200508"/>
+            <con:credentials><con:authType>Global HTTP Settings</con:authType></con:credentials><con:jmsConfig JMSDeliveryMode="PERSISTENT"/><con:jmsPropertyConfig/><con:wsaConfig mustUnderstand="NONE" version="200508"/>
             <con:wsrmConfig version="1.2"/>
           </con:request>
         </con:config>
       </con:testStep>
       
-      <con:properties>
+      <con:setupScript>nhinc.FileUtils.backupConfiguration(context.findProperty("GatewayPropDir"), log);</con:setupScript><con:properties>
         <con:property>
           <con:name>startDate</con:name>
-          <con:value>2012-08-27T13:35:02Z</con:value>
+          <con:value>2012-12-15T02:57:26Z</con:value>
         </con:property>
         <con:property>
           <con:name>endDate</con:name>
-          <con:value>2012-08-27T13:45:02Z</con:value>
+          <con:value>2012-12-15T03:07:26Z</con:value>
         </con:property>
         <con:property>
           <con:name>sigDate</con:name>
-          <con:value>08/27/2012 13:35:02</con:value>
+          <con:value>12/15/2012 02:57:26</con:value>
         </con:property>
         <con:property>
           <con:name>expireDate</con:name>
-          <con:value>2012-09-26T00:00:00Z</con:value>
+          <con:value>2013-01-14T00:00:00Z</con:value>
         </con:property>
         <con:property>
           <con:name>FullPatientID</con:name>
@@ -440,14 +424,7 @@ declare namespace ns15='urn:oasis:names:tc:ebxml-regrep:xsd:rs:3.0';
         </con:property>
       </con:properties>
       <con:reportParameters/>
-    <con:tearDownScript>import nhinc.FileUtils;
-FileUtils.restoreToMasterConfiguration(context, log);
-
-def sourceDir = System.env['NHINC_PROPERTIES_DIR'] + "/master/";
-def sourceFile = "uddiConnectionInfo.xml";
-def destDir = System.env['NHINC_PROPERTIES_DIR'];
-def destFile = "uddiConnectionInfo.xml";
-FileUtils.MoveFile(sourceDir, sourceFile, destDir, destFile, context, log);</con:tearDownScript></con:testCase>
+    <con:tearDownScript>nhinc.FileUtils.restoreConfiguration(context.findProperty("GatewayPropDir"), log);</con:tearDownScript></con:testCase>
     <con:testCase failOnError="true" failTestCaseOnErrors="true" id="e195718a-c6ce-4de8-a813-7b932eb9f174" keepSession="false" maxResults="0" name="Empty Target XML - Correlation for HCID not in UDDI file" searchProperties="true">
       <con:settings/>
       
@@ -463,18 +440,18 @@ def projectPropPath = groovyUtils.projectPath
 
 def sourceDir = projectPropPath;
 def sourceFile = "UDDIcopy-uddiConnectionInfo.xml";
-def destDir = System.env['NHINC_PROPERTIES_DIR'];
+//def destDir = context.findProperty( "NHINGatewayConfigDir" );
+def destDir = context.findProperty("GatewayPropDir");
 def destFile = "uddiConnectionInfo.xml";
 
 log.info(sourceDir +'; ' + sourceFile  +'; ' + destDir +'; ' + destFile );
 
-FileUtils.MoveFile(sourceDir, sourceFile, destDir, destFile, context, log);</script></con:config>
+FileUtils.copyFile(sourceDir, sourceFile, destDir, destFile, log);</script></con:config>
       </con:testStep>
       <con:testStep name="update config" type="groovy">
         <con:settings/>
-        <con:config>
-          <script>//def destConfigFileLocation = dataSource.getPropertyValue("NHINGatewayConfigDir");
-def destConfigFileLocation = System.env['NHINC_PROPERTIES_DIR'];
+        <con:config><script>//def destConfigFileLocation = dataSource.getPropertyValue("NHINGatewayConfigDir");
+def destConfigFileLocation = context.findProperty("GatewayPropDir");
 
 void UpdateProperty(String directory, String filename, String propertyKey, String propertyValue,context,log) {
 			  
@@ -489,8 +466,7 @@ void UpdateProperty(String directory, String filename, String propertyKey, Strin
    properties = null;
 }
 
-UpdateProperty(destConfigFileLocation,"gateway.properties","documentQueryQuerySelf","false",context,log);</script>
-        </con:config>
+nhinc.FileUtils.updateProperty(destConfigFileLocation,"gateway.properties","documentQueryQuerySelf","false",log);</script></con:config>
       </con:testStep>
       <con:testStep name="Generate patient ID for Doc Query" type="groovy">
         <con:settings/>
@@ -598,8 +574,6 @@ context.testCase.setPropertyValue('FullPatientID', "'${dqPatientID}^^^&amp;amp;$
                <urn3:zipCode>AddrZip</urn3:zipCode>
             </urn3:address>
             <urn3:dateOfBirth xmlns:urn1="urn:gov:hhs:fha:nhinc:common:nhinccommon">06/04/1959 05:21:00</urn3:dateOfBirth>
-            <urn3:dateOfSignature xmlns:urn1="urn:gov:hhs:fha:nhinc:common:nhinccommon">${#Project#sigDate}</urn3:dateOfSignature>
-            <urn3:expirationDate xmlns:urn1="urn:gov:hhs:fha:nhinc:common:nhinccommon">${#Project#expireDate}</urn3:expirationDate>
             <urn3:explanationNonClaimantSignature xmlns:urn1="urn:gov:hhs:fha:nhinc:common:nhinccommon">Electronic</urn3:explanationNonClaimantSignature>
             <urn3:haveSecondWitnessSignature xmlns:urn1="urn:gov:hhs:fha:nhinc:common:nhinccommon">false</urn3:haveSecondWitnessSignature>
             <urn3:haveSignature xmlns:urn1="urn:gov:hhs:fha:nhinc:common:nhinccommon">false</urn3:haveSignature>
@@ -637,7 +611,6 @@ context.testCase.setPropertyValue('FullPatientID', "'${dqPatientID}^^^&amp;amp;$
                   <urn3:originalText>phoneCode</urn3:originalText>
                </urn3:phoneNumberType>
             </urn3:phoneNumber>
-            <urn3:purposeOfDisclosure xmlns:urn1="urn:gov:hhs:fha:nhinc:common:nhinccommon">TREATMENT</urn3:purposeOfDisclosure>
             <urn3:secondWitnessAddress xmlns:urn1="urn:gov:hhs:fha:nhinc:common:nhinccommon">
                <urn3:addressType>
                   <urn3:code>AddrCode</urn3:code>
@@ -742,7 +715,6 @@ context.testCase.setPropertyValue('FullPatientID', "'${dqPatientID}^^^&amp;amp;$
                   <urn3:fullName>Kasrl S. Skagerberg</urn3:fullName>
                </urn3:personName>
                <urn3:userName>kskagerb</urn3:userName>
-               <urn3:role>Pharmacy</urn3:role>
                <urn3:org>
                   <urn3:description>${#Project#LocalHCDescription}</urn3:description>
                   <urn3:homeCommunityId>${#Project#LocalHCID}</urn3:homeCommunityId>
@@ -766,8 +738,8 @@ context.testCase.setPropertyValue('FullPatientID', "'${dqPatientID}^^^&amp;amp;$
                <urn3:displayName>Use or disclosure of Psychotherapy Notes</urn3:displayName>
                <urn3:originalText>Use or disclosure of Psychotherapy Notes</urn3:originalText>
             </urn3:purposeOfDisclosureCoded>
-            <urn3:claimFormRef>Ref-Clm-123</urn3:claimFormRef>
-            <urn3:claimFormRaw>YWVvbGlhbQ==</urn3:claimFormRaw>
+            <!--urn3:claimFormRef>Ref-Clm-123</urn3:claimFormRef-->
+            <!--urn3:claimFormRaw>YWVvbGlhbQ==</urn3:claimFormRaw-->
             <urn3:samlAuthnStatement xmlns:urn1="urn:gov:hhs:fha:nhinc:common:nhinccommon">
                <urn3:authInstant>2009-04-16T13:15:39Z</urn3:authInstant>
                <urn3:sessionIndex>987</urn3:sessionIndex>
@@ -800,7 +772,7 @@ context.testCase.setPropertyValue('FullPatientID', "'${dqPatientID}^^^&amp;amp;$
    </soapenv:Body>
 </soapenv:Envelope>]]></con:request>
             <con:assertion type="SOAP Response"/>
-            <con:assertion disabled="true" type="Schema Compliance">
+            <con:assertion type="Schema Compliance">
               <con:configuration/>
             </con:assertion>
             <con:assertion type="SOAP Fault Assertion"/>
@@ -813,19 +785,15 @@ context.testCase.setPropertyValue('FullPatientID', "'${dqPatientID}^^^&amp;amp;$
                 <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
               </con:configuration>
             </con:assertion>
-            <con:assertion disabled="true" type="Simple Contains">
-              <con:configuration>
-                <token>RegistryObjectList/</token>
-                <ignoreCase>false</ignoreCase>
-                <useRegEx>false</useRegEx>
-              </con:configuration>
+            <con:assertion type="Simple Contains">
+              <con:configuration><token>RegistryObjectList/</token><ignoreCase>false</ignoreCase><useRegEx>false</useRegEx></con:configuration>
             </con:assertion>
             <con:assertion type="XPath Match">
               <con:configuration><path>declare namespace ns16='urn:oasis:names:tc:ebxml-regrep:xsd:query:3.0';
 declare namespace ns15='urn:oasis:names:tc:ebxml-regrep:xsd:rs:3.0';
 //ns16:AdhocQueryResponse[1]/ns15:RegistryErrorList[1]/ns15:RegistryError[1]/@codeContext</path><content>Unable to find any callable targets.</content><allowWildcards>false</allowWildcards><ignoreNamspaceDifferences>false</ignoreNamspaceDifferences></con:configuration>
             </con:assertion>
-            <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+            <con:credentials><con:authType>Global HTTP Settings</con:authType></con:credentials><con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
             <con:jmsPropertyConfig/>
             <con:wsaConfig mustUnderstand="NONE" version="200508"/>
             <con:wsrmConfig version="1.2"/>
@@ -833,22 +801,22 @@ declare namespace ns15='urn:oasis:names:tc:ebxml-regrep:xsd:rs:3.0';
         </con:config>
       </con:testStep>
       
-      <con:properties>
+      <con:setupScript>nhinc.FileUtils.backupConfiguration(context.findProperty("GatewayPropDir"), log);</con:setupScript><con:properties>
         <con:property>
           <con:name>startDate</con:name>
-          <con:value>2012-08-27T13:35:28Z</con:value>
+          <con:value>2012-12-15T02:57:27Z</con:value>
         </con:property>
         <con:property>
           <con:name>endDate</con:name>
-          <con:value>2012-08-27T13:45:28Z</con:value>
+          <con:value>2012-12-15T03:07:27Z</con:value>
         </con:property>
         <con:property>
           <con:name>sigDate</con:name>
-          <con:value>08/27/2012 13:35:28</con:value>
+          <con:value>12/15/2012 02:57:27</con:value>
         </con:property>
         <con:property>
           <con:name>expireDate</con:name>
-          <con:value>2012-09-26T00:00:00Z</con:value>
+          <con:value>2013-01-14T00:00:00Z</con:value>
         </con:property>
         <con:property>
           <con:name>FullPatientID</con:name>
@@ -856,14 +824,7 @@ declare namespace ns15='urn:oasis:names:tc:ebxml-regrep:xsd:rs:3.0';
         </con:property>
       </con:properties>
       <con:reportParameters/>
-    <con:tearDownScript>import nhinc.FileUtils;
-FileUtils.restoreToMasterConfiguration(context, log);
-
-def sourceDir = System.env['NHINC_PROPERTIES_DIR'] + "/master/";
-def sourceFile = "uddiConnectionInfo.xml";
-def destDir = System.env['NHINC_PROPERTIES_DIR'];
-def destFile = "uddiConnectionInfo.xml";
-FileUtils.MoveFile(sourceDir, sourceFile, destDir, destFile, context, log);</con:tearDownScript></con:testCase>
+    <con:tearDownScript>nhinc.FileUtils.restoreConfiguration(context.findProperty("GatewayPropDir"), log);</con:tearDownScript></con:testCase>
     <con:testCase failOnError="true" failTestCaseOnErrors="true" id="887d9364-6c82-4903-8190-46476508147f" keepSession="false" maxResults="0" name="Empty Target XML - No Patient Correlations" searchProperties="true">
       <con:settings/>
       
@@ -880,18 +841,17 @@ def projectPropPath = groovyUtils.projectPath
 def sourceDir = projectPropPath;
 def sourceFile = "UDDIcopy-uddiConnectionInfo.xml";
 //def destDir = context.findProperty( "NHINGatewayConfigDir" );
-def destDir = System.env['NHINC_PROPERTIES_DIR'];
+def destDir = context.findProperty("GatewayPropDir");
 def destFile = "uddiConnectionInfo.xml";
 
 log.info(sourceDir +'; ' + sourceFile  +'; ' + destDir +'; ' + destFile );
 
-FileUtils.MoveFile(sourceDir, sourceFile, destDir, destFile, context, log);</script></con:config>
+FileUtils.copyFile(sourceDir, sourceFile, destDir, destFile, log);</script></con:config>
       </con:testStep>
       <con:testStep name="update config" type="groovy">
         <con:settings/>
-        <con:config>
-          <script>//def destConfigFileLocation = dataSource.getPropertyValue("NHINGatewayConfigDir");
-def destConfigFileLocation = System.env['NHINC_PROPERTIES_DIR'];
+        <con:config><script>//def destConfigFileLocation = dataSource.getPropertyValue("NHINGatewayConfigDir");
+def destConfigFileLocation = context.findProperty("GatewayPropDir");
 
 void UpdateProperty(String directory, String filename, String propertyKey, String propertyValue,context,log) {
 			  
@@ -906,8 +866,7 @@ void UpdateProperty(String directory, String filename, String propertyKey, Strin
    properties = null;
 }
 
-UpdateProperty(destConfigFileLocation,"gateway.properties","documentQueryQuerySelf","false",context,log);</script>
-        </con:config>
+nhinc.FileUtils.updateProperty(destConfigFileLocation,"gateway.properties","documentQueryQuerySelf","false",log);</script></con:config>
       </con:testStep>
       <con:testStep name="Generate patient ID for Doc Query" type="groovy">
         <con:settings/>
@@ -1001,8 +960,6 @@ context.testCase.setPropertyValue('FullPatientID', "'${dqPatientID}^^^&amp;amp;$
                <urn3:zipCode>AddrZip</urn3:zipCode>
             </urn3:address>
             <urn3:dateOfBirth xmlns:urn1="urn:gov:hhs:fha:nhinc:common:nhinccommon">06/04/1959 05:21:00</urn3:dateOfBirth>
-            <urn3:dateOfSignature xmlns:urn1="urn:gov:hhs:fha:nhinc:common:nhinccommon">${#Project#sigDate}</urn3:dateOfSignature>
-            <urn3:expirationDate xmlns:urn1="urn:gov:hhs:fha:nhinc:common:nhinccommon">${#Project#expireDate}</urn3:expirationDate>
             <urn3:explanationNonClaimantSignature xmlns:urn1="urn:gov:hhs:fha:nhinc:common:nhinccommon">Electronic</urn3:explanationNonClaimantSignature>
             <urn3:haveSecondWitnessSignature xmlns:urn1="urn:gov:hhs:fha:nhinc:common:nhinccommon">false</urn3:haveSecondWitnessSignature>
             <urn3:haveSignature xmlns:urn1="urn:gov:hhs:fha:nhinc:common:nhinccommon">false</urn3:haveSignature>
@@ -1040,7 +997,6 @@ context.testCase.setPropertyValue('FullPatientID', "'${dqPatientID}^^^&amp;amp;$
                   <urn3:originalText>phoneCode</urn3:originalText>
                </urn3:phoneNumberType>
             </urn3:phoneNumber>
-            <urn3:purposeOfDisclosure xmlns:urn1="urn:gov:hhs:fha:nhinc:common:nhinccommon">TREATMENT</urn3:purposeOfDisclosure>
             <urn3:secondWitnessAddress xmlns:urn1="urn:gov:hhs:fha:nhinc:common:nhinccommon">
                <urn3:addressType>
                   <urn3:code>AddrCode</urn3:code>
@@ -1145,7 +1101,6 @@ context.testCase.setPropertyValue('FullPatientID', "'${dqPatientID}^^^&amp;amp;$
                   <urn3:fullName>Kasrl S. Skagerberg</urn3:fullName>
                </urn3:personName>
                <urn3:userName>kskagerb</urn3:userName>
-               <urn3:role>Pharmacy</urn3:role>
                <urn3:org>
                   <urn3:description>${#Project#LocalHCDescription}</urn3:description>
                   <urn3:homeCommunityId>${#Project#LocalHCID}</urn3:homeCommunityId>
@@ -1169,8 +1124,8 @@ context.testCase.setPropertyValue('FullPatientID', "'${dqPatientID}^^^&amp;amp;$
                <urn3:displayName>Use or disclosure of Psychotherapy Notes</urn3:displayName>
                <urn3:originalText>Use or disclosure of Psychotherapy Notes</urn3:originalText>
             </urn3:purposeOfDisclosureCoded>
-            <urn3:claimFormRef>Ref-Clm-123</urn3:claimFormRef>
-            <urn3:claimFormRaw>YWVvbGlhbQ==</urn3:claimFormRaw>
+            <!--urn3:claimFormRef>Ref-Clm-123</urn3:claimFormRef-->
+            <!--urn3:claimFormRaw>YWVvbGlhbQ==</urn3:claimFormRaw-->
             <urn3:samlAuthnStatement xmlns:urn1="urn:gov:hhs:fha:nhinc:common:nhinccommon">
                <urn3:authInstant>2009-04-16T13:15:39Z</urn3:authInstant>
                <urn3:sessionIndex>987</urn3:sessionIndex>
@@ -1236,28 +1191,28 @@ declare namespace ns15='urn:oasis:names:tc:ebxml-regrep:xsd:rs:3.0';
                 <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
               </con:configuration>
             </con:assertion>
-            <con:jmsConfig JMSDeliveryMode="PERSISTENT"/><con:jmsPropertyConfig/><con:wsaConfig mustUnderstand="NONE" version="200508"/>
+            <con:credentials><con:authType>Global HTTP Settings</con:authType></con:credentials><con:jmsConfig JMSDeliveryMode="PERSISTENT"/><con:jmsPropertyConfig/><con:wsaConfig mustUnderstand="NONE" version="200508"/>
             <con:wsrmConfig version="1.2"/>
           </con:request>
         </con:config>
       </con:testStep>
       
-      <con:properties>
+      <con:setupScript>nhinc.FileUtils.backupConfiguration(context.findProperty("GatewayPropDir"), log);</con:setupScript><con:properties>
         <con:property>
           <con:name>startDate</con:name>
-          <con:value>2012-08-27T13:35:31Z</con:value>
+          <con:value>2012-12-15T02:57:28Z</con:value>
         </con:property>
         <con:property>
           <con:name>endDate</con:name>
-          <con:value>2012-08-27T13:45:31Z</con:value>
+          <con:value>2012-12-15T03:07:28Z</con:value>
         </con:property>
         <con:property>
           <con:name>sigDate</con:name>
-          <con:value>08/27/2012 13:35:31</con:value>
+          <con:value>12/15/2012 02:57:28</con:value>
         </con:property>
         <con:property>
           <con:name>expireDate</con:name>
-          <con:value>2012-09-26T00:00:00Z</con:value>
+          <con:value>2013-01-14T00:00:00Z</con:value>
         </con:property>
         <con:property>
           <con:name>FullPatientID</con:name>
@@ -1265,14 +1220,7 @@ declare namespace ns15='urn:oasis:names:tc:ebxml-regrep:xsd:rs:3.0';
         </con:property>
       </con:properties>
       <con:reportParameters/>
-    <con:tearDownScript>import nhinc.FileUtils;
-FileUtils.restoreToMasterConfiguration(context, log);
-
-def sourceDir = System.env['NHINC_PROPERTIES_DIR'] + "/master/";
-def sourceFile = "uddiConnectionInfo.xml";
-def destDir = System.env['NHINC_PROPERTIES_DIR'];
-def destFile = "uddiConnectionInfo.xml";
-//FileUtils.MoveFile(sourceDir, sourceFile, destDir, destFile, context, log);</con:tearDownScript></con:testCase>
+    <con:tearDownScript>nhinc.FileUtils.restoreConfiguration(context.findProperty("GatewayPropDir"), log);</con:tearDownScript></con:testCase>
     <con:testCase failOnError="true" failTestCaseOnErrors="true" id="7b1a13e3-8d02-46ed-bef0-981f0f967fc7" keepSession="false" maxResults="0" name="HCID Happy Path - Correlation for HCID not in UDDI file/target XML" searchProperties="true">
       <con:settings/>
       
@@ -1289,18 +1237,17 @@ def projectPropPath = groovyUtils.projectPath
 def sourceDir = projectPropPath;
 def sourceFile = "UDDIcopy-uddiConnectionInfo.xml";
 //def destDir = context.findProperty( "NHINGatewayConfigDir" );
-def destDir = System.env['NHINC_PROPERTIES_DIR'];
+def destDir = context.findProperty("GatewayPropDir");
 def destFile = "uddiConnectionInfo.xml";
 
 log.info(sourceDir +'; ' + sourceFile  +'; ' + destDir +'; ' + destFile );
 
-FileUtils.MoveFile(sourceDir, sourceFile, destDir, destFile, context, log);</script></con:config>
+FileUtils.copyFile(sourceDir, sourceFile, destDir, destFile, log);</script></con:config>
       </con:testStep>
       <con:testStep name="update config" type="groovy">
         <con:settings/>
-        <con:config>
-          <script>//def destConfigFileLocation = dataSource.getPropertyValue("NHINGatewayConfigDir");
-def destConfigFileLocation = System.env['NHINC_PROPERTIES_DIR'];
+        <con:config><script>//def destConfigFileLocation = dataSource.getPropertyValue("NHINGatewayConfigDir");
+def destConfigFileLocation = context.findProperty("GatewayPropDir");
 
 void UpdateProperty(String directory, String filename, String propertyKey, String propertyValue,context,log) {
 			  
@@ -1315,8 +1262,7 @@ void UpdateProperty(String directory, String filename, String propertyKey, Strin
    properties = null;
 }
 
-UpdateProperty(destConfigFileLocation,"gateway.properties","documentQueryQuerySelf","false",context,log);</script>
-        </con:config>
+nhinc.FileUtils.updateProperty(destConfigFileLocation,"gateway.properties","documentQueryQuerySelf","false",log);</script></con:config>
       </con:testStep>
       <con:testStep name="Generate patient ID for Doc Query" type="groovy">
         <con:settings/>
@@ -1424,8 +1370,6 @@ context.testCase.setPropertyValue('FullPatientID', "'${dqPatientID}^^^&amp;amp;$
                <urn3:zipCode>AddrZip</urn3:zipCode>
             </urn3:address>
             <urn3:dateOfBirth xmlns:urn1="urn:gov:hhs:fha:nhinc:common:nhinccommon">06/04/1959 05:21:00</urn3:dateOfBirth>
-            <urn3:dateOfSignature xmlns:urn1="urn:gov:hhs:fha:nhinc:common:nhinccommon">${#Project#sigDate}</urn3:dateOfSignature>
-            <urn3:expirationDate xmlns:urn1="urn:gov:hhs:fha:nhinc:common:nhinccommon">${#Project#expireDate}</urn3:expirationDate>
             <urn3:explanationNonClaimantSignature xmlns:urn1="urn:gov:hhs:fha:nhinc:common:nhinccommon">Electronic</urn3:explanationNonClaimantSignature>
             <urn3:haveSecondWitnessSignature xmlns:urn1="urn:gov:hhs:fha:nhinc:common:nhinccommon">false</urn3:haveSecondWitnessSignature>
             <urn3:haveSignature xmlns:urn1="urn:gov:hhs:fha:nhinc:common:nhinccommon">false</urn3:haveSignature>
@@ -1463,7 +1407,6 @@ context.testCase.setPropertyValue('FullPatientID', "'${dqPatientID}^^^&amp;amp;$
                   <urn3:originalText>phoneCode</urn3:originalText>
                </urn3:phoneNumberType>
             </urn3:phoneNumber>
-            <urn3:purposeOfDisclosure xmlns:urn1="urn:gov:hhs:fha:nhinc:common:nhinccommon">TREATMENT</urn3:purposeOfDisclosure>
             <urn3:secondWitnessAddress xmlns:urn1="urn:gov:hhs:fha:nhinc:common:nhinccommon">
                <urn3:addressType>
                   <urn3:code>AddrCode</urn3:code>
@@ -1568,7 +1511,6 @@ context.testCase.setPropertyValue('FullPatientID', "'${dqPatientID}^^^&amp;amp;$
                   <urn3:fullName>Kasrl S. Skagerberg</urn3:fullName>
                </urn3:personName>
                <urn3:userName>kskagerb</urn3:userName>
-               <urn3:role>Pharmacy</urn3:role>
                <urn3:org>
                   <urn3:description>${#Project#LocalHCDescription}</urn3:description>
                   <urn3:homeCommunityId>${#Project#LocalHCID}</urn3:homeCommunityId>
@@ -1592,8 +1534,8 @@ context.testCase.setPropertyValue('FullPatientID', "'${dqPatientID}^^^&amp;amp;$
                <urn3:displayName>Use or disclosure of Psychotherapy Notes</urn3:displayName>
                <urn3:originalText>Use or disclosure of Psychotherapy Notes</urn3:originalText>
             </urn3:purposeOfDisclosureCoded>
-            <urn3:claimFormRef>Ref-Clm-123</urn3:claimFormRef>
-            <urn3:claimFormRaw>YWVvbGlhbQ==</urn3:claimFormRaw>
+            <!--urn3:claimFormRef>Ref-Clm-123</urn3:claimFormRef-->
+            <!--urn3:claimFormRaw>YWVvbGlhbQ==</urn3:claimFormRaw-->
             <urn3:samlAuthnStatement xmlns:urn1="urn:gov:hhs:fha:nhinc:common:nhinccommon">
                <urn3:authInstant>2009-04-16T13:15:39Z</urn3:authInstant>
                <urn3:sessionIndex>987</urn3:sessionIndex>
@@ -1670,28 +1612,28 @@ declare namespace ns15='urn:oasis:names:tc:ebxml-regrep:xsd:rs:3.0';
 declare namespace ns15='urn:oasis:names:tc:ebxml-regrep:xsd:rs:3.0';
 //ns16:AdhocQueryResponse[1]/ns15:RegistryErrorList[1]/ns15:RegistryError[1]/@codeContext</path><content>Unable to find any callable targets.</content><allowWildcards>false</allowWildcards><ignoreNamspaceDifferences>false</ignoreNamspaceDifferences></con:configuration>
             </con:assertion>
-            <con:jmsConfig JMSDeliveryMode="PERSISTENT"/><con:jmsPropertyConfig/><con:wsaConfig mustUnderstand="NONE" version="200508"/>
+            <con:credentials><con:authType>Global HTTP Settings</con:authType></con:credentials><con:jmsConfig JMSDeliveryMode="PERSISTENT"/><con:jmsPropertyConfig/><con:wsaConfig mustUnderstand="NONE" version="200508"/>
             <con:wsrmConfig version="1.2"/>
           </con:request>
         </con:config>
       </con:testStep>
       
-      <con:properties>
+      <con:setupScript>nhinc.FileUtils.backupConfiguration(context.findProperty("GatewayPropDir"), log);</con:setupScript><con:properties>
         <con:property>
           <con:name>startDate</con:name>
-          <con:value>2012-08-27T13:38:31Z</con:value>
+          <con:value>2012-12-15T02:57:28Z</con:value>
         </con:property>
         <con:property>
           <con:name>endDate</con:name>
-          <con:value>2012-08-27T13:48:31Z</con:value>
+          <con:value>2012-12-15T03:07:28Z</con:value>
         </con:property>
         <con:property>
           <con:name>sigDate</con:name>
-          <con:value>08/27/2012 13:38:31</con:value>
+          <con:value>12/15/2012 02:57:28</con:value>
         </con:property>
         <con:property>
           <con:name>expireDate</con:name>
-          <con:value>2012-09-26T00:00:00Z</con:value>
+          <con:value>2013-01-14T00:00:00Z</con:value>
         </con:property>
         <con:property>
           <con:name>FullPatientID</con:name>
@@ -1699,14 +1641,7 @@ declare namespace ns15='urn:oasis:names:tc:ebxml-regrep:xsd:rs:3.0';
         </con:property>
       </con:properties>
       <con:reportParameters/>
-    <con:tearDownScript>import nhinc.FileUtils;
-FileUtils.restoreToMasterConfiguration(context, log);
-
-def sourceDir = System.env['NHINC_PROPERTIES_DIR'] + "/master/";
-def sourceFile = "uddiConnectionInfo.xml";
-def destDir = System.env['NHINC_PROPERTIES_DIR'];
-def destFile = "uddiConnectionInfo.xml";
-FileUtils.MoveFile(sourceDir, sourceFile, destDir, destFile, context, log);</con:tearDownScript></con:testCase>
+    <con:tearDownScript>nhinc.FileUtils.restoreConfiguration(context.findProperty("GatewayPropDir"), log);</con:tearDownScript></con:testCase>
     <con:testCase failOnError="true" failTestCaseOnErrors="true" id="4d4e3ed4-32ff-4ac4-9292-e78373844464" keepSession="false" maxResults="0" name="HCID Happy Path - Correlation for both HCID IN UDDI file/target XML" searchProperties="true">
       <con:settings/>
       
@@ -1723,18 +1658,17 @@ def projectPropPath = groovyUtils.projectPath
 def sourceDir = projectPropPath;
 def sourceFile = "UDDIcopy-uddiConnectionInfo.xml";
 //def destDir = context.findProperty( "NHINGatewayConfigDir" );
-def destDir = System.env['NHINC_PROPERTIES_DIR'];
+def destDir = context.findProperty("GatewayPropDir");
 def destFile = "uddiConnectionInfo.xml";
 
 log.info(sourceDir +'; ' + sourceFile  +'; ' + destDir +'; ' + destFile );
 
-FileUtils.MoveFile(sourceDir, sourceFile, destDir, destFile, context, log);</script></con:config>
+FileUtils.copyFile(sourceDir, sourceFile, destDir, destFile, log);</script></con:config>
       </con:testStep>
       <con:testStep name="update config - gateway.properties" type="groovy">
         <con:settings/>
-        <con:config>
-          <script>//def destConfigFileLocation = dataSource.getPropertyValue("NHINGatewayConfigDir");
-def destConfigFileLocation = System.env['NHINC_PROPERTIES_DIR'];
+        <con:config><script>//def destConfigFileLocation = dataSource.getPropertyValue("NHINGatewayConfigDir");
+def destConfigFileLocation = context.findProperty("GatewayPropDir");
 
 void UpdateProperty(String directory, String filename, String propertyKey, String propertyValue,context,log) {
 			  
@@ -1749,8 +1683,7 @@ void UpdateProperty(String directory, String filename, String propertyKey, Strin
    properties = null;
 }
 
-UpdateProperty(destConfigFileLocation,"gateway.properties","documentQueryQuerySelf","false",context,log);</script>
-        </con:config>
+nhinc.FileUtils.updateProperty(destConfigFileLocation,"gateway.properties","documentQueryQuerySelf","false",log);</script></con:config>
       </con:testStep>
       <con:testStep name="Generate patient ID for Doc Query" type="groovy">
         <con:settings/>
@@ -1828,15 +1761,15 @@ sql.executeUpdate(insertSql, [2, localAA, localPatientID, uddiVA3, remotePatient
         <con:config><script>import nhinc.FileUtils;
 def groovyUtils = new com.eviware.soapui.support.GroovyUtils( context );
 
-def destConfigFileLocation = System.env['NHINC_PROPERTIES_DIR'];
+def destConfigFileLocation = context.findProperty("GatewayPropDir");
 def NHINGatewayHost = context.findProperty("NHINGatewayHost");
 def mockHost = context.findProperty("mockHost");
 def dQURL = "https://localhost:8181/Gateway/DocumentQuery/2_0/NhinService/RespondingGateway_Query_Service/DocQuery";
 def remoteHCID1 = context.findProperty("UDDIhcid1");
 def remoteHCID3 = context.findProperty("UDDIhcid3");
 
-FileUtils.CreateOrUpdateConnection("uddiConnectionInfo.xml", destConfigFileLocation, remoteHCID1, "QueryForDocuments", dQURL, "2.0", context, log)
-FileUtils.CreateOrUpdateConnection("uddiConnectionInfo.xml", destConfigFileLocation, remoteHCID3, "QueryForDocuments", dQURL, "2.0", context, log)</script></con:config>
+FileUtils.createOrUpdateConnection("uddiConnectionInfo.xml", destConfigFileLocation, remoteHCID1, "QueryForDocuments", dQURL, "2.0", log)
+FileUtils.createOrUpdateConnection("uddiConnectionInfo.xml", destConfigFileLocation, remoteHCID3, "QueryForDocuments", dQURL, "2.0", log)</script></con:config>
       </con:testStep>
       <con:testStep name="Document Query" type="request">
         <con:settings/>
@@ -1878,8 +1811,6 @@ FileUtils.CreateOrUpdateConnection("uddiConnectionInfo.xml", destConfigFileLocat
                <urn3:zipCode>AddrZip</urn3:zipCode>
             </urn3:address>
             <urn3:dateOfBirth xmlns:urn1="urn:gov:hhs:fha:nhinc:common:nhinccommon">06/04/1959 05:21:00</urn3:dateOfBirth>
-            <urn3:dateOfSignature xmlns:urn1="urn:gov:hhs:fha:nhinc:common:nhinccommon">${#Project#sigDate}</urn3:dateOfSignature>
-            <urn3:expirationDate xmlns:urn1="urn:gov:hhs:fha:nhinc:common:nhinccommon">${#Project#expireDate}</urn3:expirationDate>
             <urn3:explanationNonClaimantSignature xmlns:urn1="urn:gov:hhs:fha:nhinc:common:nhinccommon">Electronic</urn3:explanationNonClaimantSignature>
             <urn3:haveSecondWitnessSignature xmlns:urn1="urn:gov:hhs:fha:nhinc:common:nhinccommon">false</urn3:haveSecondWitnessSignature>
             <urn3:haveSignature xmlns:urn1="urn:gov:hhs:fha:nhinc:common:nhinccommon">false</urn3:haveSignature>
@@ -1917,7 +1848,6 @@ FileUtils.CreateOrUpdateConnection("uddiConnectionInfo.xml", destConfigFileLocat
                   <urn3:originalText>phoneCode</urn3:originalText>
                </urn3:phoneNumberType>
             </urn3:phoneNumber>
-            <urn3:purposeOfDisclosure xmlns:urn1="urn:gov:hhs:fha:nhinc:common:nhinccommon">TREATMENT</urn3:purposeOfDisclosure>
             <urn3:secondWitnessAddress xmlns:urn1="urn:gov:hhs:fha:nhinc:common:nhinccommon">
                <urn3:addressType>
                   <urn3:code>AddrCode</urn3:code>
@@ -2022,7 +1952,6 @@ FileUtils.CreateOrUpdateConnection("uddiConnectionInfo.xml", destConfigFileLocat
                   <urn3:fullName>Kasrl S. Skagerberg</urn3:fullName>
                </urn3:personName>
                <urn3:userName>kskagerb</urn3:userName>
-               <urn3:role>Pharmacy</urn3:role>
                <urn3:org>
                   <urn3:description>${#Project#LocalHCDescription}</urn3:description>
                   <urn3:homeCommunityId>${#Project#LocalHCID}</urn3:homeCommunityId>
@@ -2046,8 +1975,8 @@ FileUtils.CreateOrUpdateConnection("uddiConnectionInfo.xml", destConfigFileLocat
                <urn3:displayName>Use or disclosure of Psychotherapy Notes</urn3:displayName>
                <urn3:originalText>Use or disclosure of Psychotherapy Notes</urn3:originalText>
             </urn3:purposeOfDisclosureCoded>
-            <urn3:claimFormRef>Ref-Clm-123</urn3:claimFormRef>
-            <urn3:claimFormRaw>YWVvbGlhbQ==</urn3:claimFormRaw>
+            <!--urn3:claimFormRef>Ref-Clm-123</urn3:claimFormRef-->
+            <!--urn3:claimFormRaw>YWVvbGlhbQ==</urn3:claimFormRaw-->
             <urn3:samlAuthnStatement xmlns:urn1="urn:gov:hhs:fha:nhinc:common:nhinccommon">
                <urn3:authInstant>2009-04-16T13:15:39Z</urn3:authInstant>
                <urn3:sessionIndex>987</urn3:sessionIndex>
@@ -2121,29 +2050,29 @@ FileUtils.CreateOrUpdateConnection("uddiConnectionInfo.xml", destConfigFileLocat
 declare namespace ns6='urn:oasis:names:tc:ebxml-regrep:xsd:query:3.0';
 count(//ns6:AdhocQueryResponse[1]/ns3:RegistryObjectList[1]/ns3:ExtrinsicObject)</path><content>2</content><allowWildcards>false</allowWildcards><ignoreNamspaceDifferences>false</ignoreNamspaceDifferences></con:configuration>
             </con:assertion>
-            <con:jmsConfig JMSDeliveryMode="PERSISTENT"/><con:jmsPropertyConfig/><con:wsaConfig mustUnderstand="NONE" version="200508"/>
+            <con:credentials><con:authType>Global HTTP Settings</con:authType></con:credentials><con:jmsConfig JMSDeliveryMode="PERSISTENT"/><con:jmsPropertyConfig/><con:wsaConfig mustUnderstand="NONE" version="200508"/>
             <con:wsrmConfig version="1.2"/>
           </con:request>
         </con:config>
       </con:testStep>
       
       
-      <con:properties>
+      <con:setupScript>nhinc.FileUtils.backupConfiguration(context.findProperty("GatewayPropDir"), log);</con:setupScript><con:properties>
         <con:property>
           <con:name>startDate</con:name>
-          <con:value>2012-08-27T13:35:32Z</con:value>
+          <con:value>2012-12-15T02:57:30Z</con:value>
         </con:property>
         <con:property>
           <con:name>endDate</con:name>
-          <con:value>2012-08-27T13:45:32Z</con:value>
+          <con:value>2012-12-15T03:07:30Z</con:value>
         </con:property>
         <con:property>
           <con:name>sigDate</con:name>
-          <con:value>08/27/2012 13:35:32</con:value>
+          <con:value>12/15/2012 02:57:30</con:value>
         </con:property>
         <con:property>
           <con:name>expireDate</con:name>
-          <con:value>2012-09-26T00:00:00Z</con:value>
+          <con:value>2013-01-14T00:00:00Z</con:value>
         </con:property>
         <con:property>
           <con:name>FullPatientID</con:name>
@@ -2151,14 +2080,7 @@ count(//ns6:AdhocQueryResponse[1]/ns3:RegistryObjectList[1]/ns3:ExtrinsicObject)
         </con:property>
       </con:properties>
       <con:reportParameters/>
-    <con:tearDownScript>import nhinc.FileUtils;
-FileUtils.restoreToMasterConfiguration(context, log);
-
-def sourceDir = System.env['NHINC_PROPERTIES_DIR'] + "/master/";
-def sourceFile = "uddiConnectionInfo.xml";
-def destDir = System.env['NHINC_PROPERTIES_DIR'];
-def destFile = "uddiConnectionInfo.xml";
-FileUtils.MoveFile(sourceDir, sourceFile, destDir, destFile, context, log);</con:tearDownScript></con:testCase>
+    <con:tearDownScript>nhinc.FileUtils.restoreConfiguration(context.findProperty("GatewayPropDir"), log);</con:tearDownScript></con:testCase>
     <con:testCase failOnError="true" failTestCaseOnErrors="true" id="9e22c57d-13af-4120-ab1d-fe1eae63e18b" keepSession="false" maxResults="0" name="HCID Happy Path - Expired Correlation for HCID IN UDDI file/target XML" searchProperties="true">
       <con:settings/>
       
@@ -2175,34 +2097,32 @@ def projectPropPath = groovyUtils.projectPath
 def sourceDir = projectPropPath;
 def sourceFile = "UDDIcopy-uddiConnectionInfo.xml";
 //def destDir = context.findProperty( "NHINGatewayConfigDir" );
-def destDir = System.env['NHINC_PROPERTIES_DIR'];
+def destDir = context.findProperty("GatewayPropDir");
 def destFile = "uddiConnectionInfo.xml";
 
 log.info(sourceDir +'; ' + sourceFile  +'; ' + destDir +'; ' + destFile );
 
-FileUtils.MoveFile(sourceDir, sourceFile, destDir, destFile, context, log);</script></con:config>
+FileUtils.copyFile(sourceDir, sourceFile, destDir, destFile, log);</script></con:config>
       </con:testStep>
       <con:testStep name="update config - gateway.properties" type="groovy">
         <con:settings/>
-        <con:config>
-          <script>//def destConfigFileLocation = dataSource.getPropertyValue("NHINGatewayConfigDir");
-def destConfigFileLocation = System.env['NHINC_PROPERTIES_DIR'];
+        <con:config><script>import nhinc.FileUtils;
+def groovyUtils = new com.eviware.soapui.support.GroovyUtils( context )
+def testCase = testRunner.getTestCase()
+def testSuite = testCase.getTestSuite()
+def project = testSuite.getProject()
+def projectPropFullFile = project.getPath()
+def projectPropPath = groovyUtils.projectPath
 
-void UpdateProperty(String directory, String filename, String propertyKey, String propertyValue,context,log) {
-			  
-   log.info("begin UpdateProperty; directory='" + directory + "';filename='" + filename + "';key='" + propertyKey + "';value='" + propertyValue + "';");
-   File file = new File(directory,filename);
-   Properties properties = new Properties();
-   FileInputStream frPropFile = new FileInputStream(file);
-   properties.load(frPropFile);
-   properties.setProperty(propertyKey, propertyValue);
-   FileOutputStream fwPropFile = new FileOutputStream(file);
-   properties.store(fwPropFile, "**DO NOT CHECK IN** - written by groovy script FileUtils.groovy->UpdateProperty");
-   properties = null;
-}
+def sourceDir = projectPropPath;
+def sourceFile = "UDDIcopy-uddiConnectionInfo.xml";
+//def destDir = context.findProperty( "NHINGatewayConfigDir" );
+def destDir = context.findProperty("GatewayPropDir");
+def destFile = "uddiConnectionInfo.xml";
 
-UpdateProperty(destConfigFileLocation,"gateway.properties","documentQueryQuerySelf","false",context,log);</script>
-        </con:config>
+log.info(sourceDir +'; ' + sourceFile  +'; ' + destDir +'; ' + destFile );
+
+FileUtils.copyFile(sourceDir, sourceFile, destDir, destFile, log);</script></con:config>
       </con:testStep>
       <con:testStep name="Generate patient ID for Doc Query" type="groovy">
         <con:settings/>
@@ -2278,13 +2198,15 @@ sql.executeUpdate(insertSql, [1, localAA, localPatientID, uddiVA1, remotePatient
         <con:config><script>import nhinc.FileUtils;
 def groovyUtils = new com.eviware.soapui.support.GroovyUtils( context );
 
-def destConfigFileLocation = System.env['NHINC_PROPERTIES_DIR'];
+def destConfigFileLocation = context.findProperty("GatewayPropDir");
 def NHINGatewayHost = context.findProperty("NHINGatewayHost");
 def mockHost = context.findProperty("mockHost");
 def dQURL = "https://localhost:8181/Gateway/DocumentQuery/2_0/NhinService/RespondingGateway_Query_Service/DocQuery";
-def remoteHCID = context.findProperty( "UDDIhcid1" );
+def remoteHCID1 = context.findProperty("UDDIhcid1");
+def remoteHCID3 = context.findProperty("UDDIhcid3");
 
-FileUtils.CreateOrUpdateConnection("uddiConnectionInfo.xml", destConfigFileLocation, remoteHCID, "QueryForDocuments", dQURL, "2.0", context, log)</script></con:config>
+FileUtils.createOrUpdateConnection("uddiConnectionInfo.xml", destConfigFileLocation, remoteHCID1, "QueryForDocuments", dQURL, "2.0", log)
+FileUtils.createOrUpdateConnection("uddiConnectionInfo.xml", destConfigFileLocation, remoteHCID3, "QueryForDocuments", dQURL, "2.0", log)</script></con:config>
       </con:testStep>
       <con:testStep name="Document Query" type="request">
         <con:settings/>
@@ -2326,8 +2248,6 @@ FileUtils.CreateOrUpdateConnection("uddiConnectionInfo.xml", destConfigFileLocat
                <urn3:zipCode>AddrZip</urn3:zipCode>
             </urn3:address>
             <urn3:dateOfBirth xmlns:urn1="urn:gov:hhs:fha:nhinc:common:nhinccommon">06/04/1959 05:21:00</urn3:dateOfBirth>
-            <urn3:dateOfSignature xmlns:urn1="urn:gov:hhs:fha:nhinc:common:nhinccommon">${#Project#sigDate}</urn3:dateOfSignature>
-            <urn3:expirationDate xmlns:urn1="urn:gov:hhs:fha:nhinc:common:nhinccommon">${#Project#expireDate}</urn3:expirationDate>
             <urn3:explanationNonClaimantSignature xmlns:urn1="urn:gov:hhs:fha:nhinc:common:nhinccommon">Electronic</urn3:explanationNonClaimantSignature>
             <urn3:haveSecondWitnessSignature xmlns:urn1="urn:gov:hhs:fha:nhinc:common:nhinccommon">false</urn3:haveSecondWitnessSignature>
             <urn3:haveSignature xmlns:urn1="urn:gov:hhs:fha:nhinc:common:nhinccommon">false</urn3:haveSignature>
@@ -2365,7 +2285,6 @@ FileUtils.CreateOrUpdateConnection("uddiConnectionInfo.xml", destConfigFileLocat
                   <urn3:originalText>phoneCode</urn3:originalText>
                </urn3:phoneNumberType>
             </urn3:phoneNumber>
-            <urn3:purposeOfDisclosure xmlns:urn1="urn:gov:hhs:fha:nhinc:common:nhinccommon">TREATMENT</urn3:purposeOfDisclosure>
             <urn3:secondWitnessAddress xmlns:urn1="urn:gov:hhs:fha:nhinc:common:nhinccommon">
                <urn3:addressType>
                   <urn3:code>AddrCode</urn3:code>
@@ -2470,7 +2389,6 @@ FileUtils.CreateOrUpdateConnection("uddiConnectionInfo.xml", destConfigFileLocat
                   <urn3:fullName>Kasrl S. Skagerberg</urn3:fullName>
                </urn3:personName>
                <urn3:userName>kskagerb</urn3:userName>
-               <urn3:role>Pharmacy</urn3:role>
                <urn3:org>
                   <urn3:description>${#Project#LocalHCDescription}</urn3:description>
                   <urn3:homeCommunityId>${#Project#LocalHCID}</urn3:homeCommunityId>
@@ -2494,8 +2412,8 @@ FileUtils.CreateOrUpdateConnection("uddiConnectionInfo.xml", destConfigFileLocat
                <urn3:displayName>Use or disclosure of Psychotherapy Notes</urn3:displayName>
                <urn3:originalText>Use or disclosure of Psychotherapy Notes</urn3:originalText>
             </urn3:purposeOfDisclosureCoded>
-            <urn3:claimFormRef>Ref-Clm-123</urn3:claimFormRef>
-            <urn3:claimFormRaw>YWVvbGlhbQ==</urn3:claimFormRaw>
+            <!--urn3:claimFormRef>Ref-Clm-123</urn3:claimFormRef-->
+            <!--urn3:claimFormRaw>YWVvbGlhbQ==</urn3:claimFormRaw-->
             <urn3:samlAuthnStatement xmlns:urn1="urn:gov:hhs:fha:nhinc:common:nhinccommon">
                <urn3:authInstant>2009-04-16T13:15:39Z</urn3:authInstant>
                <urn3:sessionIndex>987</urn3:sessionIndex>
@@ -2587,28 +2505,28 @@ declare namespace ns8='urn:oasis:names:tc:ebxml-regrep:xsd:rs:3.0';
                 <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
               </con:configuration>
             </con:assertion>
-            <con:jmsConfig JMSDeliveryMode="PERSISTENT"/><con:jmsPropertyConfig/><con:wsaConfig mustUnderstand="NONE" version="200508"/>
+            <con:credentials><con:authType>Global HTTP Settings</con:authType></con:credentials><con:jmsConfig JMSDeliveryMode="PERSISTENT"/><con:jmsPropertyConfig/><con:wsaConfig mustUnderstand="NONE" version="200508"/>
             <con:wsrmConfig version="1.2"/>
           </con:request>
         </con:config>
       </con:testStep>
       
-      <con:properties>
+      <con:setupScript>nhinc.FileUtils.backupConfiguration(context.findProperty("GatewayPropDir"), log);</con:setupScript><con:properties>
         <con:property>
           <con:name>startDate</con:name>
-          <con:value>2012-08-27T13:35:46Z</con:value>
+          <con:value>2012-12-15T02:58:30Z</con:value>
         </con:property>
         <con:property>
           <con:name>endDate</con:name>
-          <con:value>2012-08-27T13:45:46Z</con:value>
+          <con:value>2012-12-15T03:08:30Z</con:value>
         </con:property>
         <con:property>
           <con:name>sigDate</con:name>
-          <con:value>08/27/2012 13:35:46</con:value>
+          <con:value>12/15/2012 02:58:30</con:value>
         </con:property>
         <con:property>
           <con:name>expireDate</con:name>
-          <con:value>2012-09-26T00:00:00Z</con:value>
+          <con:value>2013-01-14T00:00:00Z</con:value>
         </con:property>
         <con:property>
           <con:name>FullPatientID</con:name>
@@ -2616,14 +2534,7 @@ declare namespace ns8='urn:oasis:names:tc:ebxml-regrep:xsd:rs:3.0';
         </con:property>
       </con:properties>
       <con:reportParameters/>
-    <con:tearDownScript>import nhinc.FileUtils;
-FileUtils.restoreToMasterConfiguration(context, log);
-
-def sourceDir = System.env['NHINC_PROPERTIES_DIR'] + "/master/";
-def sourceFile = "uddiConnectionInfo.xml";
-def destDir = System.env['NHINC_PROPERTIES_DIR'];
-def destFile = "uddiConnectionInfo.xml";
-FileUtils.MoveFile(sourceDir, sourceFile, destDir, destFile, context, log);</con:tearDownScript></con:testCase>
+    <con:tearDownScript>nhinc.FileUtils.restoreConfiguration(context.findProperty("GatewayPropDir"), log);</con:tearDownScript></con:testCase>
     <con:testCase failOnError="true" failTestCaseOnErrors="true" id="0d6f86ae-5976-4334-8822-ac08fdb49c77" keepSession="false" maxResults="0" name="HCID Alt Path - No Patient Correlations" searchProperties="true">
       <con:settings/>
       
@@ -2640,18 +2551,17 @@ def projectPropPath = groovyUtils.projectPath
 def sourceDir = projectPropPath;
 def sourceFile = "UDDIcopy-uddiConnectionInfo.xml";
 //def destDir = context.findProperty( "NHINGatewayConfigDir" );
-def destDir = System.env['NHINC_PROPERTIES_DIR'];
+def destDir = context.findProperty("GatewayPropDir");
 def destFile = "uddiConnectionInfo.xml";
 
 log.info(sourceDir +'; ' + sourceFile  +'; ' + destDir +'; ' + destFile );
 
-FileUtils.MoveFile(sourceDir, sourceFile, destDir, destFile, context, log);</script></con:config>
+FileUtils.copyFile(sourceDir, sourceFile, destDir, destFile, log);</script></con:config>
       </con:testStep>
       <con:testStep name="update config" type="groovy">
         <con:settings/>
-        <con:config>
-          <script>//def destConfigFileLocation = dataSource.getPropertyValue("NHINGatewayConfigDir");
-def destConfigFileLocation = System.env['NHINC_PROPERTIES_DIR'];
+        <con:config><script>//def destConfigFileLocation = dataSource.getPropertyValue("NHINGatewayConfigDir");
+def destConfigFileLocation = context.findProperty("GatewayPropDir");
 
 void UpdateProperty(String directory, String filename, String propertyKey, String propertyValue,context,log) {
 			  
@@ -2666,8 +2576,7 @@ void UpdateProperty(String directory, String filename, String propertyKey, Strin
    properties = null;
 }
 
-UpdateProperty(destConfigFileLocation,"gateway.properties","documentQueryQuerySelf","false",context,log);</script>
-        </con:config>
+nhinc.FileUtils.updateProperty(destConfigFileLocation,"gateway.properties","documentQueryQuerySelf","false",log);</script></con:config>
       </con:testStep>
       <con:testStep name="Generate patient ID for Doc Query" type="groovy">
         <con:settings/>
@@ -2761,8 +2670,6 @@ context.testCase.setPropertyValue('FullPatientID', "'${dqPatientID}^^^&amp;amp;$
                <urn3:zipCode>AddrZip</urn3:zipCode>
             </urn3:address>
             <urn3:dateOfBirth xmlns:urn1="urn:gov:hhs:fha:nhinc:common:nhinccommon">06/04/1959 05:21:00</urn3:dateOfBirth>
-            <urn3:dateOfSignature xmlns:urn1="urn:gov:hhs:fha:nhinc:common:nhinccommon">${#Project#sigDate}</urn3:dateOfSignature>
-            <urn3:expirationDate xmlns:urn1="urn:gov:hhs:fha:nhinc:common:nhinccommon">${#Project#expireDate}</urn3:expirationDate>
             <urn3:explanationNonClaimantSignature xmlns:urn1="urn:gov:hhs:fha:nhinc:common:nhinccommon">Electronic</urn3:explanationNonClaimantSignature>
             <urn3:haveSecondWitnessSignature xmlns:urn1="urn:gov:hhs:fha:nhinc:common:nhinccommon">false</urn3:haveSecondWitnessSignature>
             <urn3:haveSignature xmlns:urn1="urn:gov:hhs:fha:nhinc:common:nhinccommon">false</urn3:haveSignature>
@@ -2800,7 +2707,6 @@ context.testCase.setPropertyValue('FullPatientID', "'${dqPatientID}^^^&amp;amp;$
                   <urn3:originalText>phoneCode</urn3:originalText>
                </urn3:phoneNumberType>
             </urn3:phoneNumber>
-            <urn3:purposeOfDisclosure xmlns:urn1="urn:gov:hhs:fha:nhinc:common:nhinccommon">TREATMENT</urn3:purposeOfDisclosure>
             <urn3:secondWitnessAddress xmlns:urn1="urn:gov:hhs:fha:nhinc:common:nhinccommon">
                <urn3:addressType>
                   <urn3:code>AddrCode</urn3:code>
@@ -2905,7 +2811,6 @@ context.testCase.setPropertyValue('FullPatientID', "'${dqPatientID}^^^&amp;amp;$
                   <urn3:fullName>Kasrl S. Skagerberg</urn3:fullName>
                </urn3:personName>
                <urn3:userName>kskagerb</urn3:userName>
-               <urn3:role>Pharmacy</urn3:role>
                <urn3:org>
                   <urn3:description>${#Project#LocalHCDescription}</urn3:description>
                   <urn3:homeCommunityId>${#Project#LocalHCID}</urn3:homeCommunityId>
@@ -2929,8 +2834,8 @@ context.testCase.setPropertyValue('FullPatientID', "'${dqPatientID}^^^&amp;amp;$
                <urn3:displayName>Use or disclosure of Psychotherapy Notes</urn3:displayName>
                <urn3:originalText>Use or disclosure of Psychotherapy Notes</urn3:originalText>
             </urn3:purposeOfDisclosureCoded>
-            <urn3:claimFormRef>Ref-Clm-123</urn3:claimFormRef>
-            <urn3:claimFormRaw>YWVvbGlhbQ==</urn3:claimFormRaw>
+            <!--urn3:claimFormRef>Ref-Clm-123</urn3:claimFormRef-->
+            <!--urn3:claimFormRaw>YWVvbGlhbQ==</urn3:claimFormRaw-->
             <urn3:samlAuthnStatement xmlns:urn1="urn:gov:hhs:fha:nhinc:common:nhinccommon">
                <urn3:authInstant>2009-04-16T13:15:39Z</urn3:authInstant>
                <urn3:sessionIndex>987</urn3:sessionIndex>
@@ -2985,28 +2890,28 @@ context.testCase.setPropertyValue('FullPatientID', "'${dqPatientID}^^^&amp;amp;$
                 <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
               </con:configuration>
             </con:assertion>
-            <con:jmsConfig JMSDeliveryMode="PERSISTENT"/><con:jmsPropertyConfig/><con:wsaConfig mustUnderstand="NONE" version="200508"/>
+            <con:credentials><con:authType>Global HTTP Settings</con:authType></con:credentials><con:jmsConfig JMSDeliveryMode="PERSISTENT"/><con:jmsPropertyConfig/><con:wsaConfig mustUnderstand="NONE" version="200508"/>
             <con:wsrmConfig version="1.2"/>
           </con:request>
         </con:config>
       </con:testStep>
       
-      <con:properties>
+      <con:setupScript>nhinc.FileUtils.backupConfiguration(context.findProperty("GatewayPropDir"), log);</con:setupScript><con:properties>
         <con:property>
           <con:name>startDate</con:name>
-          <con:value>2012-08-27T13:35:46Z</con:value>
+          <con:value>2012-12-15T02:58:30Z</con:value>
         </con:property>
         <con:property>
           <con:name>endDate</con:name>
-          <con:value>2012-08-27T13:45:46Z</con:value>
+          <con:value>2012-12-15T03:08:30Z</con:value>
         </con:property>
         <con:property>
           <con:name>sigDate</con:name>
-          <con:value>08/27/2012 13:35:46</con:value>
+          <con:value>12/15/2012 02:58:30</con:value>
         </con:property>
         <con:property>
           <con:name>expireDate</con:name>
-          <con:value>2012-09-26T00:00:00Z</con:value>
+          <con:value>2013-01-14T00:00:00Z</con:value>
         </con:property>
         <con:property>
           <con:name>FullPatientID</con:name>
@@ -3014,14 +2919,7 @@ context.testCase.setPropertyValue('FullPatientID', "'${dqPatientID}^^^&amp;amp;$
         </con:property>
       </con:properties>
       <con:reportParameters/>
-    <con:tearDownScript>import nhinc.FileUtils;
-FileUtils.restoreToMasterConfiguration(context, log);
-
-def sourceDir = System.env['NHINC_PROPERTIES_DIR'] + "/master/";
-def sourceFile = "uddiConnectionInfo.xml";
-def destDir = System.env['NHINC_PROPERTIES_DIR'];
-def destFile = "uddiConnectionInfo.xml";
-FileUtils.MoveFile(sourceDir, sourceFile, destDir, destFile, context, log);</con:tearDownScript></con:testCase>
+    <con:tearDownScript>nhinc.FileUtils.restoreConfiguration(context.findProperty("GatewayPropDir"), log);</con:tearDownScript></con:testCase>
     <con:testCase failOnError="true" failTestCaseOnErrors="true" id="02cf8e64-e873-47ae-b7f2-6cc377efb1b5" keepSession="false" maxResults="0" name="HCID Alt Path - Correlation for HCID in target XML and not in UDDI" searchProperties="true">
       <con:settings/>
       
@@ -3038,18 +2936,17 @@ def projectPropPath = groovyUtils.projectPath
 def sourceDir = projectPropPath;
 def sourceFile = "UDDIcopy-uddiConnectionInfo.xml";
 //def destDir = context.findProperty( "NHINGatewayConfigDir" );
-def destDir = System.env['NHINC_PROPERTIES_DIR'];
+def destDir = context.findProperty("GatewayPropDir");
 def destFile = "uddiConnectionInfo.xml";
 
 log.info(sourceDir +'; ' + sourceFile  +'; ' + destDir +'; ' + destFile );
 
-FileUtils.MoveFile(sourceDir, sourceFile, destDir, destFile, context, log);</script></con:config>
+FileUtils.copyFile(sourceDir, sourceFile, destDir, destFile, log);</script></con:config>
       </con:testStep>
       <con:testStep name="update config" type="groovy">
         <con:settings/>
-        <con:config>
-          <script>//def destConfigFileLocation = dataSource.getPropertyValue("NHINGatewayConfigDir");
-def destConfigFileLocation = System.env['NHINC_PROPERTIES_DIR'];
+        <con:config><script>//def destConfigFileLocation = dataSource.getPropertyValue("NHINGatewayConfigDir");
+def destConfigFileLocation = context.findProperty("GatewayPropDir");
 
 void UpdateProperty(String directory, String filename, String propertyKey, String propertyValue,context,log) {
 			  
@@ -3064,8 +2961,7 @@ void UpdateProperty(String directory, String filename, String propertyKey, Strin
    properties = null;
 }
 
-UpdateProperty(destConfigFileLocation,"gateway.properties","documentQueryQuerySelf","false",context,log);</script>
-        </con:config>
+nhinc.FileUtils.updateProperty(destConfigFileLocation,"gateway.properties","documentQueryQuerySelf","false",log);</script></con:config>
       </con:testStep>
       <con:testStep name="Generate patient ID for Doc Query" type="groovy">
         <con:settings/>
@@ -3175,8 +3071,6 @@ context.testCase.setPropertyValue('FullPatientID', "'${dqPatientID}^^^&amp;amp;$
                <urn3:zipCode>AddrZip</urn3:zipCode>
             </urn3:address>
             <urn3:dateOfBirth xmlns:urn1="urn:gov:hhs:fha:nhinc:common:nhinccommon">06/04/1959 05:21:00</urn3:dateOfBirth>
-            <urn3:dateOfSignature xmlns:urn1="urn:gov:hhs:fha:nhinc:common:nhinccommon">${#Project#sigDate}</urn3:dateOfSignature>
-            <urn3:expirationDate xmlns:urn1="urn:gov:hhs:fha:nhinc:common:nhinccommon">${#Project#expireDate}</urn3:expirationDate>
             <urn3:explanationNonClaimantSignature xmlns:urn1="urn:gov:hhs:fha:nhinc:common:nhinccommon">Electronic</urn3:explanationNonClaimantSignature>
             <urn3:haveSecondWitnessSignature xmlns:urn1="urn:gov:hhs:fha:nhinc:common:nhinccommon">false</urn3:haveSecondWitnessSignature>
             <urn3:haveSignature xmlns:urn1="urn:gov:hhs:fha:nhinc:common:nhinccommon">false</urn3:haveSignature>
@@ -3214,7 +3108,6 @@ context.testCase.setPropertyValue('FullPatientID', "'${dqPatientID}^^^&amp;amp;$
                   <urn3:originalText>phoneCode</urn3:originalText>
                </urn3:phoneNumberType>
             </urn3:phoneNumber>
-            <urn3:purposeOfDisclosure xmlns:urn1="urn:gov:hhs:fha:nhinc:common:nhinccommon">TREATMENT</urn3:purposeOfDisclosure>
             <urn3:secondWitnessAddress xmlns:urn1="urn:gov:hhs:fha:nhinc:common:nhinccommon">
                <urn3:addressType>
                   <urn3:code>AddrCode</urn3:code>
@@ -3319,7 +3212,6 @@ context.testCase.setPropertyValue('FullPatientID', "'${dqPatientID}^^^&amp;amp;$
                   <urn3:fullName>Kasrl S. Skagerberg</urn3:fullName>
                </urn3:personName>
                <urn3:userName>kskagerb</urn3:userName>
-               <urn3:role>Pharmacy</urn3:role>
                <urn3:org>
                   <urn3:description>${#Project#LocalHCDescription}</urn3:description>
                   <urn3:homeCommunityId>${#Project#LocalHCID}</urn3:homeCommunityId>
@@ -3343,8 +3235,8 @@ context.testCase.setPropertyValue('FullPatientID', "'${dqPatientID}^^^&amp;amp;$
                <urn3:displayName>Use or disclosure of Psychotherapy Notes</urn3:displayName>
                <urn3:originalText>Use or disclosure of Psychotherapy Notes</urn3:originalText>
             </urn3:purposeOfDisclosureCoded>
-            <urn3:claimFormRef>Ref-Clm-123</urn3:claimFormRef>
-            <urn3:claimFormRaw>YWVvbGlhbQ==</urn3:claimFormRaw>
+            <!--urn3:claimFormRef>Ref-Clm-123</urn3:claimFormRef-->
+            <!--urn3:claimFormRaw>YWVvbGlhbQ==</urn3:claimFormRaw-->
             <urn3:samlAuthnStatement xmlns:urn1="urn:gov:hhs:fha:nhinc:common:nhinccommon">
                <urn3:authInstant>2009-04-16T13:15:39Z</urn3:authInstant>
                <urn3:sessionIndex>987</urn3:sessionIndex>
@@ -3394,28 +3286,28 @@ context.testCase.setPropertyValue('FullPatientID', "'${dqPatientID}^^^&amp;amp;$
               <con:configuration><path>declare namespace ns13='urn:oasis:names:tc:ebxml-regrep:xsd:query:3.0';
 //ns13:AdhocQueryResponse[1]/@status</path><content>urn:oasis:names:tc:ebxml-regrep:ResponseStatusType:Failure</content><allowWildcards>false</allowWildcards><ignoreNamspaceDifferences>false</ignoreNamspaceDifferences><ignoreComments>false</ignoreComments></con:configuration>
             </con:assertion>
-            <con:jmsConfig JMSDeliveryMode="PERSISTENT"/><con:jmsPropertyConfig/><con:wsaConfig mustUnderstand="NONE" version="200508"/>
+            <con:credentials><con:authType>Global HTTP Settings</con:authType></con:credentials><con:jmsConfig JMSDeliveryMode="PERSISTENT"/><con:jmsPropertyConfig/><con:wsaConfig mustUnderstand="NONE" version="200508"/>
             <con:wsrmConfig version="1.2"/>
           </con:request>
         </con:config>
       </con:testStep>
       
-      <con:properties>
+      <con:setupScript>nhinc.FileUtils.backupConfiguration(context.findProperty("GatewayPropDir"), log);</con:setupScript><con:properties>
         <con:property>
           <con:name>startDate</con:name>
-          <con:value>2012-08-27T13:35:47Z</con:value>
+          <con:value>2012-12-15T02:58:31Z</con:value>
         </con:property>
         <con:property>
           <con:name>endDate</con:name>
-          <con:value>2012-08-27T13:45:47Z</con:value>
+          <con:value>2012-12-15T03:08:31Z</con:value>
         </con:property>
         <con:property>
           <con:name>sigDate</con:name>
-          <con:value>08/27/2012 13:35:47</con:value>
+          <con:value>12/15/2012 02:58:31</con:value>
         </con:property>
         <con:property>
           <con:name>expireDate</con:name>
-          <con:value>2012-09-26T00:00:00Z</con:value>
+          <con:value>2013-01-14T00:00:00Z</con:value>
         </con:property>
         <con:property>
           <con:name>FullPatientID</con:name>
@@ -3423,22 +3315,14 @@ context.testCase.setPropertyValue('FullPatientID', "'${dqPatientID}^^^&amp;amp;$
         </con:property>
       </con:properties>
       <con:reportParameters/>
-    <con:tearDownScript>import nhinc.FileUtils;
-FileUtils.restoreToMasterConfiguration(context, log);
-
-def sourceDir = System.env['NHINC_PROPERTIES_DIR'] + "/master/";
-def sourceFile = "uddiConnectionInfo.xml";
-def destDir = System.env['NHINC_PROPERTIES_DIR'];
-def destFile = "uddiConnectionInfo.xml";
-FileUtils.MoveFile(sourceDir, sourceFile, destDir, destFile, context, log);</con:tearDownScript></con:testCase>
+    <con:tearDownScript>nhinc.FileUtils.restoreConfiguration(context.findProperty("GatewayPropDir"), log);</con:tearDownScript></con:testCase>
     <con:testCase failOnError="true" failTestCaseOnErrors="true" id="2ca4b220-9c88-4ea0-b153-bee84cc4e2b3" keepSession="false" maxResults="0" name="State Happy Path - Correlation for HCID IN UDDI file/target XML" searchProperties="true">
       <con:settings/>
       
       <con:testStep name="update config - gateway.properties" type="groovy">
         <con:settings/>
-        <con:config>
-          <script>//def destConfigFileLocation = dataSource.getPropertyValue("NHINGatewayConfigDir");
-def destConfigFileLocation = System.env['NHINC_PROPERTIES_DIR'];
+        <con:config><script>//def destConfigFileLocation = dataSource.getPropertyValue("NHINGatewayConfigDir");
+def destConfigFileLocation = context.findProperty("GatewayPropDir");
 
 void UpdateProperty(String directory, String filename, String propertyKey, String propertyValue,context,log) {
 			  
@@ -3453,8 +3337,7 @@ void UpdateProperty(String directory, String filename, String propertyKey, Strin
    properties = null;
 }
 
-UpdateProperty(destConfigFileLocation,"gateway.properties","documentQueryQuerySelf","false",context,log);</script>
-        </con:config>
+nhinc.FileUtils.updateProperty(destConfigFileLocation,"gateway.properties","documentQueryQuerySelf","false",log);</script></con:config>
       </con:testStep>
       <con:testStep name="Copy uddiConnectionInfo" type="groovy">
         <con:settings/>
@@ -3469,28 +3352,31 @@ def projectPropPath = groovyUtils.projectPath
 def sourceDir = projectPropPath;
 def sourceFile = "UDDIcopy-uddiConnectionInfo.xml";
 //def destDir = context.findProperty( "NHINGatewayConfigDir" );
-def destDir = System.env['NHINC_PROPERTIES_DIR'];
+def destDir = context.findProperty("GatewayPropDir");
 def destFile = "uddiConnectionInfo.xml";
 
 log.info(sourceDir +'; ' + sourceFile  +'; ' + destDir +'; ' + destFile );
 
-FileUtils.MoveFile(sourceDir, sourceFile, destDir, destFile, context, log);</script></con:config>
+FileUtils.copyFile(sourceDir, sourceFile, destDir, destFile, log);</script></con:config>
       </con:testStep>
       <con:testStep name="Copy internalConnectionInfo" type="groovy">
         <con:settings/>
         <con:config><script>import nhinc.FileUtils;
 def groovyUtils = new com.eviware.soapui.support.GroovyUtils( context )
-def project = testRunner.getTestCase().getTestSuite().getProject()
+def testCase = testRunner.getTestCase()
+def testSuite = testCase.getTestSuite()
+def project = testSuite.getProject()
 def projectPropFullFile = project.getPath()
+def projectPropPath = groovyUtils.projectPath
 
-def sourceDir = groovyUtils.projectPath;
+def sourceDir = projectPropPath;
 def sourceFile = "UDDIcopy-internalConnectionInfo";
-def destDir = System.env['NHINC_PROPERTIES_DIR'];
+def destDir = context.findProperty("GatewayPropDir");
 def destFile = "internalConnectionInfo.xml";
 
 log.info(sourceDir +'; ' + sourceFile  +'; ' + destDir +'; ' + destFile );
 
-FileUtils.MoveFile(sourceDir, sourceFile, destDir, destFile, context, log);</script></con:config>
+FileUtils.copyFile(sourceDir, sourceFile, destDir, destFile, log);</script></con:config>
       </con:testStep>
       <con:testStep name="Generate patient ID for Doc Query" type="groovy">
         <con:settings/>
@@ -3579,15 +3465,15 @@ context.withSql('PatientCorrelationDB') { sql ->
         <con:config><script>import nhinc.FileUtils;
 def groovyUtils = new com.eviware.soapui.support.GroovyUtils( context );
 
-def destConfigFileLocation = System.env['NHINC_PROPERTIES_DIR'];
+def destConfigFileLocation = context.findProperty("GatewayPropDir");
 def NHINGatewayHost = context.findProperty("NHINGatewayHost");
 def mockHost = context.findProperty("mockHost");
 def dQURL = "https://localhost:8181/Gateway/DocumentQuery/2_0/NhinService/RespondingGateway_Query_Service/DocQuery";
 def remoteHCID1 = context.findProperty("UDDIhcid1");
 def remoteHCID3 = context.findProperty("UDDIhcid3");
 
-FileUtils.CreateOrUpdateConnection("uddiConnectionInfo.xml", destConfigFileLocation, remoteHCID1, "QueryForDocuments", dQURL, "2.0", context, log)
-FileUtils.CreateOrUpdateConnection("uddiConnectionInfo.xml", destConfigFileLocation, remoteHCID3, "QueryForDocuments", dQURL, "2.0", context, log)</script></con:config>
+FileUtils.createOrUpdateConnection("uddiConnectionInfo.xml", destConfigFileLocation, remoteHCID1, "QueryForDocuments", dQURL, "2.0", log)
+FileUtils.createOrUpdateConnection("uddiConnectionInfo.xml", destConfigFileLocation, remoteHCID3, "QueryForDocuments", dQURL, "2.0", log)</script></con:config>
       </con:testStep>
       
       
@@ -3631,8 +3517,6 @@ FileUtils.CreateOrUpdateConnection("uddiConnectionInfo.xml", destConfigFileLocat
                <urn3:zipCode>AddrZip</urn3:zipCode>
             </urn3:address>
             <urn3:dateOfBirth xmlns:urn1="urn:gov:hhs:fha:nhinc:common:nhinccommon">06/04/1959 05:21:00</urn3:dateOfBirth>
-            <urn3:dateOfSignature xmlns:urn1="urn:gov:hhs:fha:nhinc:common:nhinccommon">${#Project#sigDate}</urn3:dateOfSignature>
-            <urn3:expirationDate xmlns:urn1="urn:gov:hhs:fha:nhinc:common:nhinccommon">${#Project#expireDate}</urn3:expirationDate>
             <urn3:explanationNonClaimantSignature xmlns:urn1="urn:gov:hhs:fha:nhinc:common:nhinccommon">Electronic</urn3:explanationNonClaimantSignature>
             <urn3:haveSecondWitnessSignature xmlns:urn1="urn:gov:hhs:fha:nhinc:common:nhinccommon">false</urn3:haveSecondWitnessSignature>
             <urn3:haveSignature xmlns:urn1="urn:gov:hhs:fha:nhinc:common:nhinccommon">false</urn3:haveSignature>
@@ -3670,7 +3554,6 @@ FileUtils.CreateOrUpdateConnection("uddiConnectionInfo.xml", destConfigFileLocat
                   <urn3:originalText>phoneCode</urn3:originalText>
                </urn3:phoneNumberType>
             </urn3:phoneNumber>
-            <urn3:purposeOfDisclosure xmlns:urn1="urn:gov:hhs:fha:nhinc:common:nhinccommon">TREATMENT</urn3:purposeOfDisclosure>
             <urn3:secondWitnessAddress xmlns:urn1="urn:gov:hhs:fha:nhinc:common:nhinccommon">
                <urn3:addressType>
                   <urn3:code>AddrCode</urn3:code>
@@ -3775,7 +3658,6 @@ FileUtils.CreateOrUpdateConnection("uddiConnectionInfo.xml", destConfigFileLocat
                   <urn3:fullName>Kasrl S. Skagerberg</urn3:fullName>
                </urn3:personName>
                <urn3:userName>kskagerb</urn3:userName>
-               <urn3:role>Pharmacy</urn3:role>
                <urn3:org>
                   <urn3:description>${#Project#LocalHCDescription}</urn3:description>
                   <urn3:homeCommunityId>${#Project#LocalHCID}</urn3:homeCommunityId>
@@ -3799,8 +3681,8 @@ FileUtils.CreateOrUpdateConnection("uddiConnectionInfo.xml", destConfigFileLocat
                <urn3:displayName>Use or disclosure of Psychotherapy Notes</urn3:displayName>
                <urn3:originalText>Use or disclosure of Psychotherapy Notes</urn3:originalText>
             </urn3:purposeOfDisclosureCoded>
-            <urn3:claimFormRef>Ref-Clm-123</urn3:claimFormRef>
-            <urn3:claimFormRaw>YWVvbGlhbQ==</urn3:claimFormRaw>
+            <!--urn3:claimFormRef>Ref-Clm-123</urn3:claimFormRef-->
+            <!--urn3:claimFormRaw>YWVvbGlhbQ==</urn3:claimFormRaw-->
             <urn3:samlAuthnStatement xmlns:urn1="urn:gov:hhs:fha:nhinc:common:nhinccommon">
                <urn3:authInstant>2009-04-16T13:15:39Z</urn3:authInstant>
                <urn3:sessionIndex>987</urn3:sessionIndex>
@@ -3872,28 +3754,28 @@ FileUtils.CreateOrUpdateConnection("uddiConnectionInfo.xml", destConfigFileLocat
 declare namespace ns6='urn:oasis:names:tc:ebxml-regrep:xsd:query:3.0';
 count(//ns6:AdhocQueryResponse[1]/ns3:RegistryObjectList[1]/ns3:ExtrinsicObject)</path><content>2</content><allowWildcards>false</allowWildcards><ignoreNamspaceDifferences>false</ignoreNamspaceDifferences></con:configuration>
             </con:assertion>
-            <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+            <con:credentials><con:authType>Global HTTP Settings</con:authType></con:credentials><con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
             <con:jmsPropertyConfig/>
             <con:wsaConfig mustUnderstand="NONE" version="200508"/>
             <con:wsrmConfig version="1.2"/>
           </con:request>
         </con:config>
-      </con:testStep><con:properties>
+      </con:testStep><con:setupScript>nhinc.FileUtils.backupConfiguration(context.findProperty("GatewayPropDir"), log);</con:setupScript><con:properties>
         <con:property>
           <con:name>startDate</con:name>
-          <con:value>2012-08-27T13:35:48Z</con:value>
+          <con:value>2012-12-15T02:58:32Z</con:value>
         </con:property>
         <con:property>
           <con:name>endDate</con:name>
-          <con:value>2012-08-27T13:45:48Z</con:value>
+          <con:value>2012-12-15T03:08:32Z</con:value>
         </con:property>
         <con:property>
           <con:name>sigDate</con:name>
-          <con:value>08/27/2012 13:35:48</con:value>
+          <con:value>12/15/2012 02:58:32</con:value>
         </con:property>
         <con:property>
           <con:name>expireDate</con:name>
-          <con:value>2012-09-26T00:00:00Z</con:value>
+          <con:value>2013-01-14T00:00:00Z</con:value>
         </con:property>
         <con:property>
           <con:name>FullPatientID</con:name>
@@ -3901,14 +3783,7 @@ count(//ns6:AdhocQueryResponse[1]/ns3:RegistryObjectList[1]/ns3:ExtrinsicObject)
         </con:property>
       </con:properties>
       <con:reportParameters/>
-    <con:tearDownScript>import nhinc.FileUtils;
-FileUtils.restoreToMasterConfiguration(context, log);
-
-def sourceDir = System.env['NHINC_PROPERTIES_DIR'] + "/master/";
-def sourceFile = "uddiConnectionInfo.xml";
-def destDir = System.env['NHINC_PROPERTIES_DIR'];
-def destFile = "uddiConnectionInfo.xml";
-FileUtils.MoveFile(sourceDir, sourceFile, destDir, destFile, context, log);</con:tearDownScript></con:testCase>
+    <con:tearDownScript>nhinc.FileUtils.restoreConfiguration(context.findProperty("GatewayPropDir"), log);</con:tearDownScript></con:testCase>
     <con:testCase failOnError="true" failTestCaseOnErrors="true" id="acb08d49-8426-462e-ba13-d78fc9eb1dbc" keepSession="false" maxResults="0" name="State Happy Path - No Patient Correlations" searchProperties="true">
       <con:settings/>
       
@@ -3925,18 +3800,17 @@ def projectPropPath = groovyUtils.projectPath
 def sourceDir = projectPropPath;
 def sourceFile = "UDDIcopy-uddiConnectionInfo.xml";
 //def destDir = context.findProperty( "NHINGatewayConfigDir" );
-def destDir = System.env['NHINC_PROPERTIES_DIR'];
+def destDir = context.findProperty("GatewayPropDir");
 def destFile = "uddiConnectionInfo.xml";
 
 log.info(sourceDir +'; ' + sourceFile  +'; ' + destDir +'; ' + destFile );
 
-FileUtils.MoveFile(sourceDir, sourceFile, destDir, destFile, context, log);</script></con:config>
+FileUtils.copyFile(sourceDir, sourceFile, destDir, destFile, log);</script></con:config>
       </con:testStep>
       <con:testStep name="update config" type="groovy">
         <con:settings/>
-        <con:config>
-          <script>//def destConfigFileLocation = dataSource.getPropertyValue("NHINGatewayConfigDir");
-def destConfigFileLocation = System.env['NHINC_PROPERTIES_DIR'];
+        <con:config><script>//def destConfigFileLocation = dataSource.getPropertyValue("NHINGatewayConfigDir");
+def destConfigFileLocation = context.findProperty("GatewayPropDir");
 
 void UpdateProperty(String directory, String filename, String propertyKey, String propertyValue,context,log) {
 			  
@@ -3951,8 +3825,7 @@ void UpdateProperty(String directory, String filename, String propertyKey, Strin
    properties = null;
 }
 
-UpdateProperty(destConfigFileLocation,"gateway.properties","documentQueryQuerySelf","false",context,log);</script>
-        </con:config>
+nhinc.FileUtils.updateProperty(destConfigFileLocation,"gateway.properties","documentQueryQuerySelf","false",log);</script></con:config>
       </con:testStep>
       <con:testStep name="Generate patient ID for Doc Query" type="groovy">
         <con:settings/>
@@ -4008,13 +3881,15 @@ context.testCase.setPropertyValue('FullPatientID', "'${dqPatientID}^^^&amp;amp;$
         <con:config><script>import nhinc.FileUtils;
 def groovyUtils = new com.eviware.soapui.support.GroovyUtils( context );
 
-def destConfigFileLocation = System.env['NHINC_PROPERTIES_DIR'];
+def destConfigFileLocation = context.findProperty("GatewayPropDir");
 def NHINGatewayHost = context.findProperty("NHINGatewayHost");
 def mockHost = context.findProperty("mockHost");
 def dQURL = "https://localhost:8181/Gateway/DocumentQuery/2_0/NhinService/RespondingGateway_Query_Service/DocQuery";
-def remoteHCID = context.findProperty( "UDDIhcid4" );
+def remoteHCID1 = context.findProperty("UDDIhcid1");
+def remoteHCID3 = context.findProperty("UDDIhcid3");
 
-FileUtils.CreateOrUpdateConnection("uddiConnectionInfo.xml", destConfigFileLocation, remoteHCID, "QueryForDocuments", dQURL, "2.0", context, log)</script></con:config>
+FileUtils.createOrUpdateConnection("uddiConnectionInfo.xml", destConfigFileLocation, remoteHCID1, "QueryForDocuments", dQURL, "2.0", log)
+FileUtils.createOrUpdateConnection("uddiConnectionInfo.xml", destConfigFileLocation, remoteHCID3, "QueryForDocuments", dQURL, "2.0", log)</script></con:config>
       </con:testStep>
       
       <con:testStep name="Document Query" type="request">
@@ -4057,8 +3932,6 @@ FileUtils.CreateOrUpdateConnection("uddiConnectionInfo.xml", destConfigFileLocat
                <urn3:zipCode>AddrZip</urn3:zipCode>
             </urn3:address>
             <urn3:dateOfBirth xmlns:urn1="urn:gov:hhs:fha:nhinc:common:nhinccommon">06/04/1959 05:21:00</urn3:dateOfBirth>
-            <urn3:dateOfSignature xmlns:urn1="urn:gov:hhs:fha:nhinc:common:nhinccommon">${#Project#sigDate}</urn3:dateOfSignature>
-            <urn3:expirationDate xmlns:urn1="urn:gov:hhs:fha:nhinc:common:nhinccommon">${#Project#expireDate}</urn3:expirationDate>
             <urn3:explanationNonClaimantSignature xmlns:urn1="urn:gov:hhs:fha:nhinc:common:nhinccommon">Electronic</urn3:explanationNonClaimantSignature>
             <urn3:haveSecondWitnessSignature xmlns:urn1="urn:gov:hhs:fha:nhinc:common:nhinccommon">false</urn3:haveSecondWitnessSignature>
             <urn3:haveSignature xmlns:urn1="urn:gov:hhs:fha:nhinc:common:nhinccommon">false</urn3:haveSignature>
@@ -4096,7 +3969,6 @@ FileUtils.CreateOrUpdateConnection("uddiConnectionInfo.xml", destConfigFileLocat
                   <urn3:originalText>phoneCode</urn3:originalText>
                </urn3:phoneNumberType>
             </urn3:phoneNumber>
-            <urn3:purposeOfDisclosure xmlns:urn1="urn:gov:hhs:fha:nhinc:common:nhinccommon">TREATMENT</urn3:purposeOfDisclosure>
             <urn3:secondWitnessAddress xmlns:urn1="urn:gov:hhs:fha:nhinc:common:nhinccommon">
                <urn3:addressType>
                   <urn3:code>AddrCode</urn3:code>
@@ -4201,7 +4073,6 @@ FileUtils.CreateOrUpdateConnection("uddiConnectionInfo.xml", destConfigFileLocat
                   <urn3:fullName>Kasrl S. Skagerberg</urn3:fullName>
                </urn3:personName>
                <urn3:userName>kskagerb</urn3:userName>
-               <urn3:role>Pharmacy</urn3:role>
                <urn3:org>
                   <urn3:description>${#Project#LocalHCDescription}</urn3:description>
                   <urn3:homeCommunityId>${#Project#LocalHCID}</urn3:homeCommunityId>
@@ -4225,8 +4096,8 @@ FileUtils.CreateOrUpdateConnection("uddiConnectionInfo.xml", destConfigFileLocat
                <urn3:displayName>Use or disclosure of Psychotherapy Notes</urn3:displayName>
                <urn3:originalText>Use or disclosure of Psychotherapy Notes</urn3:originalText>
             </urn3:purposeOfDisclosureCoded>
-            <urn3:claimFormRef>Ref-Clm-123</urn3:claimFormRef>
-            <urn3:claimFormRaw>YWVvbGlhbQ==</urn3:claimFormRaw>
+            <!--urn3:claimFormRef>Ref-Clm-123</urn3:claimFormRef-->
+            <!--urn3:claimFormRaw>YWVvbGlhbQ==</urn3:claimFormRaw-->
             <urn3:samlAuthnStatement xmlns:urn1="urn:gov:hhs:fha:nhinc:common:nhinccommon">
                <urn3:authInstant>2009-04-16T13:15:39Z</urn3:authInstant>
                <urn3:sessionIndex>987</urn3:sessionIndex>
@@ -4278,26 +4149,26 @@ FileUtils.CreateOrUpdateConnection("uddiConnectionInfo.xml", destConfigFileLocat
                 <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
               </con:configuration>
             </con:assertion>
-            <con:jmsConfig JMSDeliveryMode="PERSISTENT"/><con:jmsPropertyConfig/><con:wsaConfig mustUnderstand="NONE" version="200508"/>
+            <con:credentials><con:authType>Global HTTP Settings</con:authType></con:credentials><con:jmsConfig JMSDeliveryMode="PERSISTENT"/><con:jmsPropertyConfig/><con:wsaConfig mustUnderstand="NONE" version="200508"/>
             <con:wsrmConfig version="1.2"/>
           </con:request>
         </con:config>
-      </con:testStep><con:properties>
+      </con:testStep><con:setupScript>nhinc.FileUtils.backupConfiguration(context.findProperty("GatewayPropDir"), log);</con:setupScript><con:properties>
         <con:property>
           <con:name>startDate</con:name>
-          <con:value>2012-08-27T13:35:49Z</con:value>
+          <con:value>2012-12-15T02:58:35Z</con:value>
         </con:property>
         <con:property>
           <con:name>endDate</con:name>
-          <con:value>2012-08-27T13:45:49Z</con:value>
+          <con:value>2012-12-15T03:08:35Z</con:value>
         </con:property>
         <con:property>
           <con:name>sigDate</con:name>
-          <con:value>08/27/2012 13:35:49</con:value>
+          <con:value>12/15/2012 02:58:35</con:value>
         </con:property>
         <con:property>
           <con:name>expireDate</con:name>
-          <con:value>2012-09-26T00:00:00Z</con:value>
+          <con:value>2013-01-14T00:00:00Z</con:value>
         </con:property>
         <con:property>
           <con:name>FullPatientID</con:name>
@@ -4305,14 +4176,7 @@ FileUtils.CreateOrUpdateConnection("uddiConnectionInfo.xml", destConfigFileLocat
         </con:property>
       </con:properties>
       <con:reportParameters/>
-    <con:tearDownScript>import nhinc.FileUtils;
-FileUtils.restoreToMasterConfiguration(context, log);
-
-def sourceDir = System.env['NHINC_PROPERTIES_DIR'] + "/master/";
-def sourceFile = "uddiConnectionInfo.xml";
-def destDir = System.env['NHINC_PROPERTIES_DIR'];
-def destFile = "uddiConnectionInfo.xml";
-FileUtils.MoveFile(sourceDir, sourceFile, destDir, destFile, context, log);</con:tearDownScript></con:testCase>
+    <con:tearDownScript>nhinc.FileUtils.restoreConfiguration(context.findProperty("GatewayPropDir"), log);</con:tearDownScript></con:testCase>
     <con:testCase failOnError="true" failTestCaseOnErrors="true" id="213ffdab-3205-42f3-b9f3-b70f0c097c9e" keepSession="false" maxResults="0" name="State Alt Path - No Patient Correlations" searchProperties="true">
       <con:settings/>
       
@@ -4329,12 +4193,12 @@ def projectPropPath = groovyUtils.projectPath
 def sourceDir = projectPropPath;
 def sourceFile = "UDDIcopy-uddiConnectionInfo.xml";
 //def destDir = context.findProperty( "NHINGatewayConfigDir" );
-def destDir = System.env['NHINC_PROPERTIES_DIR'];
+def destDir = context.findProperty("GatewayPropDir");
 def destFile = "uddiConnectionInfo.xml";
 
 log.info(sourceDir +'; ' + sourceFile  +'; ' + destDir +'; ' + destFile );
 
-FileUtils.MoveFile(sourceDir, sourceFile, destDir, destFile, context, log);</script></con:config>
+FileUtils.copyFile(sourceDir, sourceFile, destDir, destFile, log);</script></con:config>
       </con:testStep>
       <con:testStep name="Copy InternalConfigurationInfo" type="groovy">
         <con:settings/>
@@ -4348,19 +4212,17 @@ def projectPropPath = groovyUtils.projectPath
 
 def sourceDir = projectPropPath;
 def sourceFile = "UDDIcopy-internalConnectionInfo";
-//def destDir = context.findProperty( "NHINGatewayConfigDir" );
-def destDir = System.env['NHINC_PROPERTIES_DIR'];
+def destDir = context.findProperty("GatewayPropDir");
 def destFile = "internalConnectionInfo.xml";
 
 log.info(sourceDir +'; ' + sourceFile  +'; ' + destDir +'; ' + destFile );
 
-FileUtils.MoveFile(sourceDir, sourceFile, destDir, destFile, context, log);</script></con:config>
+FileUtils.copyFile(sourceDir, sourceFile, destDir, destFile, log);</script></con:config>
       </con:testStep>
       <con:testStep name="update config" type="groovy">
         <con:settings/>
-        <con:config>
-          <script>//def destConfigFileLocation = dataSource.getPropertyValue("NHINGatewayConfigDir");
-def destConfigFileLocation = System.env['NHINC_PROPERTIES_DIR'];
+        <con:config><script>//def destConfigFileLocation = dataSource.getPropertyValue("NHINGatewayConfigDir");
+def destConfigFileLocation = context.findProperty("GatewayPropDir");
 
 void UpdateProperty(String directory, String filename, String propertyKey, String propertyValue,context,log) {
 			  
@@ -4375,8 +4237,7 @@ void UpdateProperty(String directory, String filename, String propertyKey, Strin
    properties = null;
 }
 
-UpdateProperty(destConfigFileLocation,"gateway.properties","documentQueryQuerySelf","false",context,log);</script>
-        </con:config>
+nhinc.FileUtils.updateProperty(destConfigFileLocation,"gateway.properties","documentQueryQuerySelf","false",log);</script></con:config>
       </con:testStep>
       <con:testStep name="Generate patient ID for Doc Query" type="groovy">
         <con:settings/>
@@ -4470,8 +4331,6 @@ context.testCase.setPropertyValue('FullPatientID', "'${dqPatientID}^^^&amp;amp;$
                <urn3:zipCode>AddrZip</urn3:zipCode>
             </urn3:address>
             <urn3:dateOfBirth xmlns:urn1="urn:gov:hhs:fha:nhinc:common:nhinccommon">06/04/1959 05:21:00</urn3:dateOfBirth>
-            <urn3:dateOfSignature xmlns:urn1="urn:gov:hhs:fha:nhinc:common:nhinccommon">${#Project#sigDate}</urn3:dateOfSignature>
-            <urn3:expirationDate xmlns:urn1="urn:gov:hhs:fha:nhinc:common:nhinccommon">${#Project#expireDate}</urn3:expirationDate>
             <urn3:explanationNonClaimantSignature xmlns:urn1="urn:gov:hhs:fha:nhinc:common:nhinccommon">Electronic</urn3:explanationNonClaimantSignature>
             <urn3:haveSecondWitnessSignature xmlns:urn1="urn:gov:hhs:fha:nhinc:common:nhinccommon">false</urn3:haveSecondWitnessSignature>
             <urn3:haveSignature xmlns:urn1="urn:gov:hhs:fha:nhinc:common:nhinccommon">false</urn3:haveSignature>
@@ -4509,7 +4368,6 @@ context.testCase.setPropertyValue('FullPatientID', "'${dqPatientID}^^^&amp;amp;$
                   <urn3:originalText>phoneCode</urn3:originalText>
                </urn3:phoneNumberType>
             </urn3:phoneNumber>
-            <urn3:purposeOfDisclosure xmlns:urn1="urn:gov:hhs:fha:nhinc:common:nhinccommon">TREATMENT</urn3:purposeOfDisclosure>
             <urn3:secondWitnessAddress xmlns:urn1="urn:gov:hhs:fha:nhinc:common:nhinccommon">
                <urn3:addressType>
                   <urn3:code>AddrCode</urn3:code>
@@ -4614,7 +4472,6 @@ context.testCase.setPropertyValue('FullPatientID', "'${dqPatientID}^^^&amp;amp;$
                   <urn3:fullName>Kasrl S. Skagerberg</urn3:fullName>
                </urn3:personName>
                <urn3:userName>kskagerb</urn3:userName>
-               <urn3:role>Pharmacy</urn3:role>
                <urn3:org>
                   <urn3:description>${#Project#LocalHCDescription}</urn3:description>
                   <urn3:homeCommunityId>${#Project#LocalHCID}</urn3:homeCommunityId>
@@ -4638,8 +4495,8 @@ context.testCase.setPropertyValue('FullPatientID', "'${dqPatientID}^^^&amp;amp;$
                <urn3:displayName>Use or disclosure of Psychotherapy Notes</urn3:displayName>
                <urn3:originalText>Use or disclosure of Psychotherapy Notes</urn3:originalText>
             </urn3:purposeOfDisclosureCoded>
-            <urn3:claimFormRef>Ref-Clm-123</urn3:claimFormRef>
-            <urn3:claimFormRaw>YWVvbGlhbQ==</urn3:claimFormRaw>
+            <!--urn3:claimFormRef>Ref-Clm-123</urn3:claimFormRef-->
+            <!--urn3:claimFormRaw>YWVvbGlhbQ==</urn3:claimFormRaw-->
             <urn3:samlAuthnStatement xmlns:urn1="urn:gov:hhs:fha:nhinc:common:nhinccommon">
                <urn3:authInstant>2009-04-16T13:15:39Z</urn3:authInstant>
                <urn3:sessionIndex>987</urn3:sessionIndex>
@@ -4723,28 +4580,28 @@ declare namespace ns15='urn:oasis:names:tc:ebxml-regrep:xsd:rs:3.0';
                 <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
               </con:configuration>
             </con:assertion>
-            <con:jmsConfig JMSDeliveryMode="PERSISTENT"/><con:jmsPropertyConfig/><con:wsaConfig mustUnderstand="NONE" version="200508"/>
+            <con:credentials><con:authType>Global HTTP Settings</con:authType></con:credentials><con:jmsConfig JMSDeliveryMode="PERSISTENT"/><con:jmsPropertyConfig/><con:wsaConfig mustUnderstand="NONE" version="200508"/>
             <con:wsrmConfig version="1.2"/>
           </con:request>
         </con:config>
       </con:testStep>
       
-      <con:properties>
+      <con:setupScript>nhinc.FileUtils.backupConfiguration(context.findProperty("GatewayPropDir"), log);</con:setupScript><con:properties>
         <con:property>
           <con:name>startDate</con:name>
-          <con:value>2012-08-27T13:35:50Z</con:value>
+          <con:value>2012-12-15T02:58:35Z</con:value>
         </con:property>
         <con:property>
           <con:name>endDate</con:name>
-          <con:value>2012-08-27T13:45:50Z</con:value>
+          <con:value>2012-12-15T03:08:35Z</con:value>
         </con:property>
         <con:property>
           <con:name>sigDate</con:name>
-          <con:value>08/27/2012 13:35:50</con:value>
+          <con:value>12/15/2012 02:58:35</con:value>
         </con:property>
         <con:property>
           <con:name>expireDate</con:name>
-          <con:value>2012-09-26T00:00:00Z</con:value>
+          <con:value>2013-01-14T00:00:00Z</con:value>
         </con:property>
         <con:property>
           <con:name>FullPatientID</con:name>
@@ -4752,14 +4609,7 @@ declare namespace ns15='urn:oasis:names:tc:ebxml-regrep:xsd:rs:3.0';
         </con:property>
       </con:properties>
       <con:reportParameters/>
-    <con:tearDownScript>import nhinc.FileUtils;
-FileUtils.restoreToMasterConfiguration(context, log);
-
-def sourceDir = System.env['NHINC_PROPERTIES_DIR'] + "/master/";
-def sourceFile = "uddiConnectionInfo.xml";
-def destDir = System.env['NHINC_PROPERTIES_DIR'];
-def destFile = "uddiConnectionInfo.xml";
-FileUtils.MoveFile(sourceDir, sourceFile, destDir, destFile, context, log);</con:tearDownScript></con:testCase>
+    <con:tearDownScript>nhinc.FileUtils.restoreConfiguration(context.findProperty("GatewayPropDir"), log);</con:tearDownScript></con:testCase>
     <con:testCase failOnError="true" failTestCaseOnErrors="true" id="513d71ab-aff5-45ef-a71d-f2fafb41545f" keepSession="false" maxResults="0" name="State Alt Path - Correlation for HCID not in UDDI file/target XML" searchProperties="true">
       <con:settings/>
       
@@ -4776,12 +4626,12 @@ def projectPropPath = groovyUtils.projectPath
 def sourceDir = projectPropPath;
 def sourceFile = "UDDIcopy-uddiConnectionInfo.xml";
 //def destDir = context.findProperty( "NHINGatewayConfigDir" );
-def destDir = System.env['NHINC_PROPERTIES_DIR'];
+def destDir = context.findProperty("GatewayPropDir");
 def destFile = "uddiConnectionInfo.xml";
 
 log.info(sourceDir +'; ' + sourceFile  +'; ' + destDir +'; ' + destFile );
 
-FileUtils.MoveFile(sourceDir, sourceFile, destDir, destFile, context, log);</script></con:config>
+FileUtils.copyFile(sourceDir, sourceFile, destDir, destFile, log);</script></con:config>
       </con:testStep>
       <con:testStep name="Copy InternalConfigurationInfo" type="groovy">
         <con:settings/>
@@ -4795,19 +4645,17 @@ def projectPropPath = groovyUtils.projectPath
 
 def sourceDir = projectPropPath;
 def sourceFile = "UDDIcopy-internalConnectionInfo";
-//def destDir = context.findProperty( "NHINGatewayConfigDir" );
-def destDir = System.env['NHINC_PROPERTIES_DIR'];
+def destDir = context.findProperty("GatewayPropDir");
 def destFile = "internalConnectionInfo.xml";
 
 log.info(sourceDir +'; ' + sourceFile  +'; ' + destDir +'; ' + destFile );
 
-FileUtils.MoveFile(sourceDir, sourceFile, destDir, destFile, context, log);</script></con:config>
+FileUtils.copyFile(sourceDir, sourceFile, destDir, destFile, log);</script></con:config>
       </con:testStep>
       <con:testStep name="update config" type="groovy">
         <con:settings/>
-        <con:config>
-          <script>//def destConfigFileLocation = dataSource.getPropertyValue("NHINGatewayConfigDir");
-def destConfigFileLocation = System.env['NHINC_PROPERTIES_DIR'];
+        <con:config><script>//def destConfigFileLocation = dataSource.getPropertyValue("NHINGatewayConfigDir");
+def destConfigFileLocation = context.findProperty("GatewayPropDir");
 
 void UpdateProperty(String directory, String filename, String propertyKey, String propertyValue,context,log) {
 			  
@@ -4822,8 +4670,7 @@ void UpdateProperty(String directory, String filename, String propertyKey, Strin
    properties = null;
 }
 
-UpdateProperty(destConfigFileLocation,"gateway.properties","documentQueryQuerySelf","false",context,log);</script>
-        </con:config>
+nhinc.FileUtils.updateProperty(destConfigFileLocation,"gateway.properties","documentQueryQuerySelf","false",log);</script></con:config>
       </con:testStep>
       <con:testStep name="Generate patient ID for Doc Query" type="groovy">
         <con:settings/>
@@ -4931,8 +4778,6 @@ context.testCase.setPropertyValue('FullPatientID', "'${dqPatientID}^^^&amp;amp;$
                <urn3:zipCode>AddrZip</urn3:zipCode>
             </urn3:address>
             <urn3:dateOfBirth xmlns:urn1="urn:gov:hhs:fha:nhinc:common:nhinccommon">06/04/1959 05:21:00</urn3:dateOfBirth>
-            <urn3:dateOfSignature xmlns:urn1="urn:gov:hhs:fha:nhinc:common:nhinccommon">${#Project#sigDate}</urn3:dateOfSignature>
-            <urn3:expirationDate xmlns:urn1="urn:gov:hhs:fha:nhinc:common:nhinccommon">${#Project#expireDate}</urn3:expirationDate>
             <urn3:explanationNonClaimantSignature xmlns:urn1="urn:gov:hhs:fha:nhinc:common:nhinccommon">Electronic</urn3:explanationNonClaimantSignature>
             <urn3:haveSecondWitnessSignature xmlns:urn1="urn:gov:hhs:fha:nhinc:common:nhinccommon">false</urn3:haveSecondWitnessSignature>
             <urn3:haveSignature xmlns:urn1="urn:gov:hhs:fha:nhinc:common:nhinccommon">false</urn3:haveSignature>
@@ -4970,7 +4815,6 @@ context.testCase.setPropertyValue('FullPatientID', "'${dqPatientID}^^^&amp;amp;$
                   <urn3:originalText>phoneCode</urn3:originalText>
                </urn3:phoneNumberType>
             </urn3:phoneNumber>
-            <urn3:purposeOfDisclosure xmlns:urn1="urn:gov:hhs:fha:nhinc:common:nhinccommon">TREATMENT</urn3:purposeOfDisclosure>
             <urn3:secondWitnessAddress xmlns:urn1="urn:gov:hhs:fha:nhinc:common:nhinccommon">
                <urn3:addressType>
                   <urn3:code>AddrCode</urn3:code>
@@ -5075,7 +4919,6 @@ context.testCase.setPropertyValue('FullPatientID', "'${dqPatientID}^^^&amp;amp;$
                   <urn3:fullName>Kasrl S. Skagerberg</urn3:fullName>
                </urn3:personName>
                <urn3:userName>kskagerb</urn3:userName>
-               <urn3:role>Pharmacy</urn3:role>
                <urn3:org>
                   <urn3:description>${#Project#LocalHCDescription}</urn3:description>
                   <urn3:homeCommunityId>${#Project#LocalHCID}</urn3:homeCommunityId>
@@ -5099,8 +4942,8 @@ context.testCase.setPropertyValue('FullPatientID', "'${dqPatientID}^^^&amp;amp;$
                <urn3:displayName>Use or disclosure of Psychotherapy Notes</urn3:displayName>
                <urn3:originalText>Use or disclosure of Psychotherapy Notes</urn3:originalText>
             </urn3:purposeOfDisclosureCoded>
-            <urn3:claimFormRef>Ref-Clm-123</urn3:claimFormRef>
-            <urn3:claimFormRaw>YWVvbGlhbQ==</urn3:claimFormRaw>
+            <!--urn3:claimFormRef>Ref-Clm-123</urn3:claimFormRef-->
+            <!--urn3:claimFormRaw>YWVvbGlhbQ==</urn3:claimFormRaw-->
             <urn3:samlAuthnStatement xmlns:urn1="urn:gov:hhs:fha:nhinc:common:nhinccommon">
                <urn3:authInstant>2009-04-16T13:15:39Z</urn3:authInstant>
                <urn3:sessionIndex>987</urn3:sessionIndex>
@@ -5174,28 +5017,28 @@ declare namespace ns15='urn:oasis:names:tc:ebxml-regrep:xsd:rs:3.0';
 declare namespace ns15='urn:oasis:names:tc:ebxml-regrep:xsd:rs:3.0';
 //ns16:AdhocQueryResponse[1]/ns15:RegistryErrorList[1]/ns15:RegistryError[1]/@codeContext</path><content>Unable to find any callable targets.</content><allowWildcards>false</allowWildcards><ignoreNamspaceDifferences>false</ignoreNamspaceDifferences></con:configuration>
             </con:assertion>
-            <con:jmsConfig JMSDeliveryMode="PERSISTENT"/><con:jmsPropertyConfig/><con:wsaConfig mustUnderstand="NONE" version="200508"/>
+            <con:credentials><con:authType>Global HTTP Settings</con:authType></con:credentials><con:jmsConfig JMSDeliveryMode="PERSISTENT"/><con:jmsPropertyConfig/><con:wsaConfig mustUnderstand="NONE" version="200508"/>
             <con:wsrmConfig version="1.2"/>
           </con:request>
         </con:config>
       </con:testStep>
       
-      <con:properties>
+      <con:setupScript>nhinc.FileUtils.backupConfiguration(context.findProperty("GatewayPropDir"), log);</con:setupScript><con:properties>
         <con:property>
           <con:name>startDate</con:name>
-          <con:value>2012-08-27T13:35:51Z</con:value>
+          <con:value>2012-12-15T02:58:36Z</con:value>
         </con:property>
         <con:property>
           <con:name>endDate</con:name>
-          <con:value>2012-08-27T13:45:51Z</con:value>
+          <con:value>2012-12-15T03:08:36Z</con:value>
         </con:property>
         <con:property>
           <con:name>sigDate</con:name>
-          <con:value>08/27/2012 13:35:51</con:value>
+          <con:value>12/15/2012 02:58:36</con:value>
         </con:property>
         <con:property>
           <con:name>expireDate</con:name>
-          <con:value>2012-09-26T00:00:00Z</con:value>
+          <con:value>2013-01-14T00:00:00Z</con:value>
         </con:property>
         <con:property>
           <con:name>FullPatientID</con:name>
@@ -5203,14 +5046,7 @@ declare namespace ns15='urn:oasis:names:tc:ebxml-regrep:xsd:rs:3.0';
         </con:property>
       </con:properties>
       <con:reportParameters/>
-    <con:tearDownScript>import nhinc.FileUtils;
-FileUtils.restoreToMasterConfiguration(context, log);
-
-def sourceDir = System.env['NHINC_PROPERTIES_DIR'] + "/master/";
-def sourceFile = "uddiConnectionInfo.xml";
-def destDir = System.env['NHINC_PROPERTIES_DIR'];
-def destFile = "uddiConnectionInfo.xml";
-FileUtils.MoveFile(sourceDir, sourceFile, destDir, destFile, context, log);</con:tearDownScript></con:testCase>
+    <con:tearDownScript>nhinc.FileUtils.restoreConfiguration(context.findProperty("GatewayPropDir"), log);</con:tearDownScript></con:testCase>
     <con:testCase disabled="true" failOnError="true" failTestCaseOnErrors="true" id="9e940daf-b52b-4d96-992c-cef25421fd38" keepSession="false" maxResults="0" name="State Alt Path - Correlation for HCID IN UDDI file/target XML" searchProperties="true">
       <con:settings/>
       
@@ -5232,7 +5068,7 @@ def destFile = "uddiConnectionInfo.xml";
 
 log.info(sourceDir +'; ' + sourceFile  +'; ' + destDir +'; ' + destFile );
 
-FileUtils.MoveFile(sourceDir, sourceFile, destDir, destFile, context, log);</script>
+FileUtils.copyFile(sourceDir, sourceFile, destDir, destFile, context, log);</script>
         </con:config>
       </con:testStep>
       <con:testStep name="Copy InternalConfigurationInfo" type="groovy">
@@ -5253,7 +5089,7 @@ def destFile = "internalConnectionInfo.xml";
 
 log.info(sourceDir +'; ' + sourceFile  +'; ' + destDir +'; ' + destFile );
 
-FileUtils.MoveFile(sourceDir, sourceFile, destDir, destFile, context, log);</script>
+FileUtils.copyFile(sourceDir, sourceFile, destDir, destFile, context, log);</script>
         </con:config>
       </con:testStep>
       <con:testStep name="update config - gateway.properties" type="groovy">
@@ -5424,8 +5260,6 @@ FileUtils.CreateOrUpdateConnection("uddiConnectionInfo.xml", destConfigFileLocat
                <urn3:zipCode>AddrZip</urn3:zipCode>
             </urn3:address>
             <urn3:dateOfBirth xmlns:urn1="urn:gov:hhs:fha:nhinc:common:nhinccommon">06/04/1959 05:21:00</urn3:dateOfBirth>
-            <urn3:dateOfSignature xmlns:urn1="urn:gov:hhs:fha:nhinc:common:nhinccommon">${#Project#sigDate}</urn3:dateOfSignature>
-            <urn3:expirationDate xmlns:urn1="urn:gov:hhs:fha:nhinc:common:nhinccommon">${#Project#expireDate}</urn3:expirationDate>
             <urn3:explanationNonClaimantSignature xmlns:urn1="urn:gov:hhs:fha:nhinc:common:nhinccommon">Electronic</urn3:explanationNonClaimantSignature>
             <urn3:haveSecondWitnessSignature xmlns:urn1="urn:gov:hhs:fha:nhinc:common:nhinccommon">false</urn3:haveSecondWitnessSignature>
             <urn3:haveSignature xmlns:urn1="urn:gov:hhs:fha:nhinc:common:nhinccommon">false</urn3:haveSignature>
@@ -5463,7 +5297,6 @@ FileUtils.CreateOrUpdateConnection("uddiConnectionInfo.xml", destConfigFileLocat
                   <urn3:originalText>phoneCode</urn3:originalText>
                </urn3:phoneNumberType>
             </urn3:phoneNumber>
-            <urn3:purposeOfDisclosure xmlns:urn1="urn:gov:hhs:fha:nhinc:common:nhinccommon">TREATMENT</urn3:purposeOfDisclosure>
             <urn3:secondWitnessAddress xmlns:urn1="urn:gov:hhs:fha:nhinc:common:nhinccommon">
                <urn3:addressType>
                   <urn3:code>AddrCode</urn3:code>
@@ -5568,7 +5401,6 @@ FileUtils.CreateOrUpdateConnection("uddiConnectionInfo.xml", destConfigFileLocat
                   <urn3:fullName>Kasrl S. Skagerberg</urn3:fullName>
                </urn3:personName>
                <urn3:userName>kskagerb</urn3:userName>
-               <urn3:role>Pharmacy</urn3:role>
                <urn3:org>
                   <urn3:description>${#Project#LocalHCDescription}</urn3:description>
                   <urn3:homeCommunityId>${#Project#LocalHCID}</urn3:homeCommunityId>
@@ -5592,8 +5424,8 @@ FileUtils.CreateOrUpdateConnection("uddiConnectionInfo.xml", destConfigFileLocat
                <urn3:displayName>Use or disclosure of Psychotherapy Notes</urn3:displayName>
                <urn3:originalText>Use or disclosure of Psychotherapy Notes</urn3:originalText>
             </urn3:purposeOfDisclosureCoded>
-            <urn3:claimFormRef>Ref-Clm-123</urn3:claimFormRef>
-            <urn3:claimFormRaw>YWVvbGlhbQ==</urn3:claimFormRaw>
+            <!--urn3:claimFormRef>Ref-Clm-123</urn3:claimFormRef-->
+            <!--urn3:claimFormRaw>YWVvbGlhbQ==</urn3:claimFormRaw-->
             <urn3:samlAuthnStatement xmlns:urn1="urn:gov:hhs:fha:nhinc:common:nhinccommon">
                <urn3:authInstant>2009-04-16T13:15:39Z</urn3:authInstant>
                <urn3:sessionIndex>987</urn3:sessionIndex>
@@ -5671,7 +5503,7 @@ FileUtils.CreateOrUpdateConnection("uddiConnectionInfo.xml", destConfigFileLocat
 declare namespace ns6='urn:oasis:names:tc:ebxml-regrep:xsd:query:3.0';
 count(//ns6:AdhocQueryResponse[1]/ns3:RegistryObjectList[1]/ns3:ExtrinsicObject)</path><content>5</content><allowWildcards>false</allowWildcards><ignoreNamspaceDifferences>false</ignoreNamspaceDifferences></con:configuration>
             </con:assertion>
-            <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+            <con:credentials><con:authType>Global HTTP Settings</con:authType></con:credentials><con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
             <con:jmsPropertyConfig/>
             <con:wsaConfig mustUnderstand="NONE" version="200508"/>
             <con:wsrmConfig version="1.2"/>
@@ -5709,7 +5541,7 @@ def sourceDir = System.env['NHINC_PROPERTIES_DIR'] + "/master/";
 def sourceFile = "uddiConnectionInfo.xml";
 def destDir = System.env['NHINC_PROPERTIES_DIR'];
 def destFile = "uddiConnectionInfo.xml";
-//FileUtils.MoveFile(sourceDir, sourceFile, destDir, destFile, context, log);</con:tearDownScript></con:testCase>
+//FileUtils.copyFile(sourceDir, sourceFile, destDir, destFile, context, log);</con:tearDownScript></con:testCase>
     <con:testCase failOnError="true" failTestCaseOnErrors="true" id="b673cce6-4e31-401e-8fb0-1b98f7e35455" keepSession="false" maxResults="0" name="State Alt Path - Region and associated HCID in target xml results in one response" searchProperties="true">
       <con:settings/>
       
@@ -5726,12 +5558,12 @@ def projectPropPath = groovyUtils.projectPath
 def sourceDir = projectPropPath;
 def sourceFile = "UDDIcopy-uddiConnectionInfo.xml";
 //def destDir = context.findProperty( "NHINGatewayConfigDir" );
-def destDir = System.env['NHINC_PROPERTIES_DIR'];
+def destDir = context.findProperty("GatewayPropDir");
 def destFile = "uddiConnectionInfo.xml";
 
 log.info(sourceDir +'; ' + sourceFile  +'; ' + destDir +'; ' + destFile );
 
-FileUtils.MoveFile(sourceDir, sourceFile, destDir, destFile, context, log);</script></con:config>
+FileUtils.copyFile(sourceDir, sourceFile, destDir, destFile, log);</script></con:config>
       </con:testStep>
       <con:testStep name="Copy InternalConfigurationInfo" type="groovy">
         <con:settings/>
@@ -5745,19 +5577,18 @@ def projectPropPath = groovyUtils.projectPath
 
 def sourceDir = projectPropPath;
 def sourceFile = "UDDIcopy-internalConnectionInfo";
-//def destDir = context.findProperty( "NHINGatewayConfigDir" );
-def destDir = System.env['NHINC_PROPERTIES_DIR'];
+def destDir = context.findProperty("GatewayPropDir");
 def destFile = "internalConnectionInfo.xml";
 
 log.info(sourceDir +'; ' + sourceFile  +'; ' + destDir +'; ' + destFile );
 
-FileUtils.MoveFile(sourceDir, sourceFile, destDir, destFile, context, log);</script></con:config>
+FileUtils.copyFile(sourceDir, sourceFile, destDir, destFile, log);</script></con:config>
       </con:testStep>
       <con:testStep name="update config - gateway.properties" type="groovy">
         <con:settings/>
-        <con:config>
-          <script>//def destConfigFileLocation = dataSource.getPropertyValue("NHINGatewayConfigDir");
-def destConfigFileLocation = System.env['NHINC_PROPERTIES_DIR'];
+        <con:config><script>
+//def destConfigFileLocation = dataSource.getPropertyValue("NHINGatewayConfigDir");
+def destConfigFileLocation = context.findProperty("GatewayPropDir");
 
 void UpdateProperty(String directory, String filename, String propertyKey, String propertyValue,context,log) {
 			  
@@ -5772,8 +5603,7 @@ void UpdateProperty(String directory, String filename, String propertyKey, Strin
    properties = null;
 }
 
-UpdateProperty(destConfigFileLocation,"gateway.properties","documentQueryQuerySelf","false",context,log);</script>
-        </con:config>
+nhinc.FileUtils.updateProperty(destConfigFileLocation,"gateway.properties","documentQueryQuerySelf","false",log);</script></con:config>
       </con:testStep>
       <con:testStep name="Generate patient ID for Doc Query" type="groovy">
         <con:settings/>
@@ -5848,13 +5678,15 @@ context.testCase.setPropertyValue('FullPatientID', "'${dqPatientID}^^^&amp;amp;$
         <con:config><script>import nhinc.FileUtils;
 def groovyUtils = new com.eviware.soapui.support.GroovyUtils( context );
 
-def destConfigFileLocation = System.env['NHINC_PROPERTIES_DIR'];
+def destConfigFileLocation = context.findProperty("GatewayPropDir");
 def NHINGatewayHost = context.findProperty("NHINGatewayHost");
 def mockHost = context.findProperty("mockHost");
 def dQURL = "https://localhost:8181/Gateway/DocumentQuery/2_0/NhinService/RespondingGateway_Query_Service/DocQuery";
-def remoteHCID = context.findProperty( "UDDIhcid4" );
+def remoteHCID1 = context.findProperty("UDDIhcid1");
+def remoteHCID3 = context.findProperty("UDDIhcid3");
 
-FileUtils.CreateOrUpdateConnection("uddiConnectionInfo.xml", destConfigFileLocation, remoteHCID, "QueryForDocuments", dQURL, "2.0", context, log)</script></con:config>
+FileUtils.createOrUpdateConnection("uddiConnectionInfo.xml", destConfigFileLocation, remoteHCID1, "QueryForDocuments", dQURL, "2.0", log)
+FileUtils.createOrUpdateConnection("uddiConnectionInfo.xml", destConfigFileLocation, remoteHCID3, "QueryForDocuments", dQURL, "2.0", log)</script></con:config>
       </con:testStep>
       <con:testStep name="Document Query" type="request">
         <con:settings/>
@@ -5896,8 +5728,6 @@ FileUtils.CreateOrUpdateConnection("uddiConnectionInfo.xml", destConfigFileLocat
                <urn3:zipCode>AddrZip</urn3:zipCode>
             </urn3:address>
             <urn3:dateOfBirth xmlns:urn1="urn:gov:hhs:fha:nhinc:common:nhinccommon">06/04/1959 05:21:00</urn3:dateOfBirth>
-            <urn3:dateOfSignature xmlns:urn1="urn:gov:hhs:fha:nhinc:common:nhinccommon">${#Project#sigDate}</urn3:dateOfSignature>
-            <urn3:expirationDate xmlns:urn1="urn:gov:hhs:fha:nhinc:common:nhinccommon">${#Project#expireDate}</urn3:expirationDate>
             <urn3:explanationNonClaimantSignature xmlns:urn1="urn:gov:hhs:fha:nhinc:common:nhinccommon">Electronic</urn3:explanationNonClaimantSignature>
             <urn3:haveSecondWitnessSignature xmlns:urn1="urn:gov:hhs:fha:nhinc:common:nhinccommon">false</urn3:haveSecondWitnessSignature>
             <urn3:haveSignature xmlns:urn1="urn:gov:hhs:fha:nhinc:common:nhinccommon">false</urn3:haveSignature>
@@ -5935,7 +5765,6 @@ FileUtils.CreateOrUpdateConnection("uddiConnectionInfo.xml", destConfigFileLocat
                   <urn3:originalText>phoneCode</urn3:originalText>
                </urn3:phoneNumberType>
             </urn3:phoneNumber>
-            <urn3:purposeOfDisclosure xmlns:urn1="urn:gov:hhs:fha:nhinc:common:nhinccommon">TREATMENT</urn3:purposeOfDisclosure>
             <urn3:secondWitnessAddress xmlns:urn1="urn:gov:hhs:fha:nhinc:common:nhinccommon">
                <urn3:addressType>
                   <urn3:code>AddrCode</urn3:code>
@@ -6040,7 +5869,6 @@ FileUtils.CreateOrUpdateConnection("uddiConnectionInfo.xml", destConfigFileLocat
                   <urn3:fullName>Kasrl S. Skagerberg</urn3:fullName>
                </urn3:personName>
                <urn3:userName>kskagerb</urn3:userName>
-               <urn3:role>Pharmacy</urn3:role>
                <urn3:org>
                   <urn3:description>${#Project#LocalHCDescription}</urn3:description>
                   <urn3:homeCommunityId>${#Project#LocalHCID}</urn3:homeCommunityId>
@@ -6064,8 +5892,8 @@ FileUtils.CreateOrUpdateConnection("uddiConnectionInfo.xml", destConfigFileLocat
                <urn3:displayName>Use or disclosure of Psychotherapy Notes</urn3:displayName>
                <urn3:originalText>Use or disclosure of Psychotherapy Notes</urn3:originalText>
             </urn3:purposeOfDisclosureCoded>
-            <urn3:claimFormRef>Ref-Clm-123</urn3:claimFormRef>
-            <urn3:claimFormRaw>YWVvbGlhbQ==</urn3:claimFormRaw>
+            <!--urn3:claimFormRef>Ref-Clm-123</urn3:claimFormRef-->
+            <!--urn3:claimFormRaw>YWVvbGlhbQ==</urn3:claimFormRaw-->
             <urn3:samlAuthnStatement xmlns:urn1="urn:gov:hhs:fha:nhinc:common:nhinccommon">
                <urn3:authInstant>2009-04-16T13:15:39Z</urn3:authInstant>
                <urn3:sessionIndex>987</urn3:sessionIndex>
@@ -6143,29 +5971,29 @@ FileUtils.CreateOrUpdateConnection("uddiConnectionInfo.xml", destConfigFileLocat
 declare namespace ns6='urn:oasis:names:tc:ebxml-regrep:xsd:query:3.0';
 count(//ns6:AdhocQueryResponse[1]/ns3:RegistryObjectList[1]/ns3:ExtrinsicObject)</path><content>1</content><allowWildcards>false</allowWildcards><ignoreNamspaceDifferences>false</ignoreNamspaceDifferences></con:configuration>
             </con:assertion>
-            <con:jmsConfig JMSDeliveryMode="PERSISTENT"/><con:jmsPropertyConfig/><con:wsaConfig mustUnderstand="NONE" version="200508"/>
+            <con:credentials><con:authType>Global HTTP Settings</con:authType></con:credentials><con:jmsConfig JMSDeliveryMode="PERSISTENT"/><con:jmsPropertyConfig/><con:wsaConfig mustUnderstand="NONE" version="200508"/>
             <con:wsrmConfig version="1.2"/>
           </con:request>
         </con:config>
       </con:testStep>
       
       
-      <con:properties>
+      <con:setupScript>nhinc.FileUtils.backupConfiguration(context.findProperty("GatewayPropDir"), log);</con:setupScript><con:properties>
         <con:property>
           <con:name>startDate</con:name>
-          <con:value>2012-08-27T13:35:51Z</con:value>
+          <con:value>2012-12-15T02:58:36Z</con:value>
         </con:property>
         <con:property>
           <con:name>endDate</con:name>
-          <con:value>2012-08-27T13:45:51Z</con:value>
+          <con:value>2012-12-15T03:08:36Z</con:value>
         </con:property>
         <con:property>
           <con:name>sigDate</con:name>
-          <con:value>08/27/2012 13:35:51</con:value>
+          <con:value>12/15/2012 02:58:36</con:value>
         </con:property>
         <con:property>
           <con:name>expireDate</con:name>
-          <con:value>2012-09-26T00:00:00Z</con:value>
+          <con:value>2013-01-14T00:00:00Z</con:value>
         </con:property>
         <con:property>
           <con:name>FullPatientID</con:name>
@@ -6173,14 +6001,7 @@ count(//ns6:AdhocQueryResponse[1]/ns3:RegistryObjectList[1]/ns3:ExtrinsicObject)
         </con:property>
       </con:properties>
       <con:reportParameters/>
-    <con:tearDownScript>import nhinc.FileUtils;
-FileUtils.restoreToMasterConfiguration(context, log);
-
-def sourceDir = System.env['NHINC_PROPERTIES_DIR'] + "/master/";
-def sourceFile = "uddiConnectionInfo.xml";
-def destDir = System.env['NHINC_PROPERTIES_DIR'];
-def destFile = "uddiConnectionInfo.xml";
-FileUtils.MoveFile(sourceDir, sourceFile, destDir, destFile, context, log);</con:tearDownScript></con:testCase>
+    <con:tearDownScript>nhinc.FileUtils.restoreConfiguration(context.findProperty("GatewayPropDir"), log);</con:tearDownScript></con:testCase>
     <con:testCase failOnError="true" failTestCaseOnErrors="true" id="ecb4d188-094b-4f8c-bb59-b5cf33c4e974" keepSession="false" maxResults="0" name="State Alt Path - Multiple regions and correlations" searchProperties="true">
       <con:settings/>
       
@@ -6197,12 +6018,12 @@ def projectPropPath = groovyUtils.projectPath
 def sourceDir = projectPropPath;
 def sourceFile = "UDDIcopy-uddiConnectionInfo.xml";
 //def destDir = context.findProperty( "NHINGatewayConfigDir" );
-def destDir = System.env['NHINC_PROPERTIES_DIR'];
+def destDir = context.findProperty("GatewayPropDir");
 def destFile = "uddiConnectionInfo.xml";
 
 log.info(sourceDir +'; ' + sourceFile  +'; ' + destDir +'; ' + destFile );
 
-FileUtils.MoveFile(sourceDir, sourceFile, destDir, destFile, context, log);</script></con:config>
+FileUtils.copyFile(sourceDir, sourceFile, destDir, destFile, log);</script></con:config>
       </con:testStep>
       <con:testStep name="Copy InternalConfigurationInfo" type="groovy">
         <con:settings/>
@@ -6216,19 +6037,17 @@ def projectPropPath = groovyUtils.projectPath
 
 def sourceDir = projectPropPath;
 def sourceFile = "UDDIcopy-internalConnectionInfo";
-//def destDir = context.findProperty( "NHINGatewayConfigDir" );
-def destDir = System.env['NHINC_PROPERTIES_DIR'];
+def destDir = context.findProperty("GatewayPropDir");
 def destFile = "internalConnectionInfo.xml";
 
 log.info(sourceDir +'; ' + sourceFile  +'; ' + destDir +'; ' + destFile );
 
-FileUtils.MoveFile(sourceDir, sourceFile, destDir, destFile, context, log);</script></con:config>
+FileUtils.copyFile(sourceDir, sourceFile, destDir, destFile, log);</script></con:config>
       </con:testStep>
       <con:testStep name="update config - gateway.properties" type="groovy">
         <con:settings/>
-        <con:config>
-          <script>//def destConfigFileLocation = dataSource.getPropertyValue("NHINGatewayConfigDir");
-def destConfigFileLocation = System.env['NHINC_PROPERTIES_DIR'];
+        <con:config><script>//def destConfigFileLocation = dataSource.getPropertyValue("NHINGatewayConfigDir");
+def destConfigFileLocation = context.findProperty("GatewayPropDir");
 
 void UpdateProperty(String directory, String filename, String propertyKey, String propertyValue,context,log) {
 			  
@@ -6243,8 +6062,7 @@ void UpdateProperty(String directory, String filename, String propertyKey, Strin
    properties = null;
 }
 
-UpdateProperty(destConfigFileLocation,"gateway.properties","documentQueryQuerySelf","false",context,log);</script>
-        </con:config>
+nhinc.FileUtils.updateProperty(destConfigFileLocation,"gateway.properties","documentQueryQuerySelf","false",log);</script></con:config>
       </con:testStep>
       <con:testStep name="Generate patient ID for Doc Query" type="groovy">
         <con:settings/>
@@ -6343,19 +6161,15 @@ context.withSql('PatientCorrelationDB') { sql ->
         <con:config><script>import nhinc.FileUtils;
 def groovyUtils = new com.eviware.soapui.support.GroovyUtils( context );
 
-def destConfigFileLocation = System.env['NHINC_PROPERTIES_DIR'];
+def destConfigFileLocation = context.findProperty("GatewayPropDir");
 def NHINGatewayHost = context.findProperty("NHINGatewayHost");
 def mockHost = context.findProperty("mockHost");
 def dQURL = "https://localhost:8181/Gateway/DocumentQuery/2_0/NhinService/RespondingGateway_Query_Service/DocQuery";
 def remoteHCID1 = context.findProperty("UDDIhcid1");
-def remoteHCID2 = context.findProperty("UDDIhcid2");
 def remoteHCID3 = context.findProperty("UDDIhcid3");
-def remoteHCID4 = context.findProperty("UDDIhcid4");
 
-FileUtils.CreateOrUpdateConnection("uddiConnectionInfo.xml", destConfigFileLocation, remoteHCID1, "QueryForDocuments", dQURL, "2.0", context, log)
-FileUtils.CreateOrUpdateConnection("uddiConnectionInfo.xml", destConfigFileLocation, remoteHCID2, "QueryForDocuments", dQURL, "2.0", context, log)
-FileUtils.CreateOrUpdateConnection("uddiConnectionInfo.xml", destConfigFileLocation, remoteHCID3, "QueryForDocuments", dQURL, "2.0", context, log)
-FileUtils.CreateOrUpdateConnection("uddiConnectionInfo.xml", destConfigFileLocation, remoteHCID4, "QueryForDocuments", dQURL, "2.0", context, log)</script></con:config>
+FileUtils.createOrUpdateConnection("uddiConnectionInfo.xml", destConfigFileLocation, remoteHCID1, "QueryForDocuments", dQURL, "2.0", log)
+FileUtils.createOrUpdateConnection("uddiConnectionInfo.xml", destConfigFileLocation, remoteHCID3, "QueryForDocuments", dQURL, "2.0", log)</script></con:config>
       </con:testStep>
       <con:testStep name="Document Query" type="request">
         <con:settings/>
@@ -6397,8 +6211,6 @@ FileUtils.CreateOrUpdateConnection("uddiConnectionInfo.xml", destConfigFileLocat
                <urn3:zipCode>AddrZip</urn3:zipCode>
             </urn3:address>
             <urn3:dateOfBirth xmlns:urn1="urn:gov:hhs:fha:nhinc:common:nhinccommon">06/04/1959 05:21:00</urn3:dateOfBirth>
-            <urn3:dateOfSignature xmlns:urn1="urn:gov:hhs:fha:nhinc:common:nhinccommon">${#Project#sigDate}</urn3:dateOfSignature>
-            <urn3:expirationDate xmlns:urn1="urn:gov:hhs:fha:nhinc:common:nhinccommon">${#Project#expireDate}</urn3:expirationDate>
             <urn3:explanationNonClaimantSignature xmlns:urn1="urn:gov:hhs:fha:nhinc:common:nhinccommon">Electronic</urn3:explanationNonClaimantSignature>
             <urn3:haveSecondWitnessSignature xmlns:urn1="urn:gov:hhs:fha:nhinc:common:nhinccommon">false</urn3:haveSecondWitnessSignature>
             <urn3:haveSignature xmlns:urn1="urn:gov:hhs:fha:nhinc:common:nhinccommon">false</urn3:haveSignature>
@@ -6436,7 +6248,6 @@ FileUtils.CreateOrUpdateConnection("uddiConnectionInfo.xml", destConfigFileLocat
                   <urn3:originalText>phoneCode</urn3:originalText>
                </urn3:phoneNumberType>
             </urn3:phoneNumber>
-            <urn3:purposeOfDisclosure xmlns:urn1="urn:gov:hhs:fha:nhinc:common:nhinccommon">TREATMENT</urn3:purposeOfDisclosure>
             <urn3:secondWitnessAddress xmlns:urn1="urn:gov:hhs:fha:nhinc:common:nhinccommon">
                <urn3:addressType>
                   <urn3:code>AddrCode</urn3:code>
@@ -6541,7 +6352,6 @@ FileUtils.CreateOrUpdateConnection("uddiConnectionInfo.xml", destConfigFileLocat
                   <urn3:fullName>Kasrl S. Skagerberg</urn3:fullName>
                </urn3:personName>
                <urn3:userName>kskagerb</urn3:userName>
-               <urn3:role>Pharmacy</urn3:role>
                <urn3:org>
                   <urn3:description>${#Project#LocalHCDescription}</urn3:description>
                   <urn3:homeCommunityId>${#Project#LocalHCID}</urn3:homeCommunityId>
@@ -6565,8 +6375,8 @@ FileUtils.CreateOrUpdateConnection("uddiConnectionInfo.xml", destConfigFileLocat
                <urn3:displayName>Use or disclosure of Psychotherapy Notes</urn3:displayName>
                <urn3:originalText>Use or disclosure of Psychotherapy Notes</urn3:originalText>
             </urn3:purposeOfDisclosureCoded>
-            <urn3:claimFormRef>Ref-Clm-123</urn3:claimFormRef>
-            <urn3:claimFormRaw>YWVvbGlhbQ==</urn3:claimFormRaw>
+            <!--urn3:claimFormRef>Ref-Clm-123</urn3:claimFormRef-->
+            <!--urn3:claimFormRaw>YWVvbGlhbQ==</urn3:claimFormRaw-->
             <urn3:samlAuthnStatement xmlns:urn1="urn:gov:hhs:fha:nhinc:common:nhinccommon">
                <urn3:authInstant>2009-04-16T13:15:39Z</urn3:authInstant>
                <urn3:sessionIndex>987</urn3:sessionIndex>
@@ -6649,7 +6459,7 @@ FileUtils.CreateOrUpdateConnection("uddiConnectionInfo.xml", destConfigFileLocat
 declare namespace ns6='urn:oasis:names:tc:ebxml-regrep:xsd:query:3.0';
 count(//ns6:AdhocQueryResponse[1]/ns3:RegistryObjectList[1]/ns3:ExtrinsicObject)</path><content>6</content><allowWildcards>false</allowWildcards><ignoreNamspaceDifferences>false</ignoreNamspaceDifferences></con:configuration>
             </con:assertion>
-            <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+            <con:credentials><con:authType>Global HTTP Settings</con:authType></con:credentials><con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
             <con:jmsPropertyConfig/>
             <con:wsaConfig mustUnderstand="NONE" version="200508"/>
             <con:wsrmConfig version="1.2"/>
@@ -6658,22 +6468,22 @@ count(//ns6:AdhocQueryResponse[1]/ns3:RegistryObjectList[1]/ns3:ExtrinsicObject)
       </con:testStep>
       
       
-      <con:properties>
+      <con:setupScript>nhinc.FileUtils.backupConfiguration(context.findProperty("GatewayPropDir"), log);</con:setupScript><con:properties>
         <con:property>
           <con:name>startDate</con:name>
-          <con:value>2012-08-27T13:35:53Z</con:value>
+          <con:value>2012-12-15T02:58:37Z</con:value>
         </con:property>
         <con:property>
           <con:name>endDate</con:name>
-          <con:value>2012-08-27T13:45:53Z</con:value>
+          <con:value>2012-12-15T03:08:37Z</con:value>
         </con:property>
         <con:property>
           <con:name>sigDate</con:name>
-          <con:value>08/27/2012 13:35:53</con:value>
+          <con:value>12/15/2012 02:58:37</con:value>
         </con:property>
         <con:property>
           <con:name>expireDate</con:name>
-          <con:value>2012-09-26T00:00:00Z</con:value>
+          <con:value>2013-01-14T00:00:00Z</con:value>
         </con:property>
         <con:property>
           <con:name>FullPatientID</con:name>
@@ -6681,14 +6491,7 @@ count(//ns6:AdhocQueryResponse[1]/ns3:RegistryObjectList[1]/ns3:ExtrinsicObject)
         </con:property>
       </con:properties>
       <con:reportParameters/>
-    <con:tearDownScript>import nhinc.FileUtils;
-FileUtils.restoreToMasterConfiguration(context, log);
-
-def sourceDir = System.env['NHINC_PROPERTIES_DIR'] + "/master/";
-def sourceFile = "uddiConnectionInfo.xml";
-def destDir = System.env['NHINC_PROPERTIES_DIR'];
-def destFile = "uddiConnectionInfo.xml";
-FileUtils.MoveFile(sourceDir, sourceFile, destDir, destFile, context, log);</con:tearDownScript></con:testCase>
+    <con:tearDownScript>nhinc.FileUtils.restoreConfiguration(context.findProperty("GatewayPropDir"), log);</con:tearDownScript></con:testCase>
     <con:testCase disabled="true" failOnError="true" failTestCaseOnErrors="true" id="5d62165c-7a92-4211-b4a8-22f1793f3c0c" keepSession="false" maxResults="0" name="Empty Target XML - Correlation for HCID IN UDDI file" searchProperties="true">
       <con:settings/>
       
@@ -6710,7 +6513,7 @@ def destFile = "uddiConnectionInfo.xml";
 
 log.info(sourceDir +'; ' + sourceFile  +'; ' + destDir +'; ' + destFile );
 
-FileUtils.MoveFile(sourceDir, sourceFile, destDir, destFile, context, log);</script>
+FileUtils.copyFile(sourceDir, sourceFile, destDir, destFile, context, log);</script>
         </con:config>
       </con:testStep>
       <con:testStep name="update config - gateway.properties" type="groovy">
@@ -6855,8 +6658,6 @@ FileUtils.CreateOrUpdateConnection("uddiConnectionInfo.xml", destConfigFileLocat
                <urn3:zipCode>AddrZip</urn3:zipCode>
             </urn3:address>
             <urn3:dateOfBirth xmlns:urn1="urn:gov:hhs:fha:nhinc:common:nhinccommon">06/04/1959 05:21:00</urn3:dateOfBirth>
-            <urn3:dateOfSignature xmlns:urn1="urn:gov:hhs:fha:nhinc:common:nhinccommon">${#Project#sigDate}</urn3:dateOfSignature>
-            <urn3:expirationDate xmlns:urn1="urn:gov:hhs:fha:nhinc:common:nhinccommon">${#Project#expireDate}</urn3:expirationDate>
             <urn3:explanationNonClaimantSignature xmlns:urn1="urn:gov:hhs:fha:nhinc:common:nhinccommon">Electronic</urn3:explanationNonClaimantSignature>
             <urn3:haveSecondWitnessSignature xmlns:urn1="urn:gov:hhs:fha:nhinc:common:nhinccommon">false</urn3:haveSecondWitnessSignature>
             <urn3:haveSignature xmlns:urn1="urn:gov:hhs:fha:nhinc:common:nhinccommon">false</urn3:haveSignature>
@@ -6894,7 +6695,6 @@ FileUtils.CreateOrUpdateConnection("uddiConnectionInfo.xml", destConfigFileLocat
                   <urn3:originalText>phoneCode</urn3:originalText>
                </urn3:phoneNumberType>
             </urn3:phoneNumber>
-            <urn3:purposeOfDisclosure xmlns:urn1="urn:gov:hhs:fha:nhinc:common:nhinccommon">TREATMENT</urn3:purposeOfDisclosure>
             <urn3:secondWitnessAddress xmlns:urn1="urn:gov:hhs:fha:nhinc:common:nhinccommon">
                <urn3:addressType>
                   <urn3:code>AddrCode</urn3:code>
@@ -6999,7 +6799,6 @@ FileUtils.CreateOrUpdateConnection("uddiConnectionInfo.xml", destConfigFileLocat
                   <urn3:fullName>Kasrl S. Skagerberg</urn3:fullName>
                </urn3:personName>
                <urn3:userName>kskagerb</urn3:userName>
-               <urn3:role>Pharmacy</urn3:role>
                <urn3:org>
                   <urn3:description>${#Project#LocalHCDescription}</urn3:description>
                   <urn3:homeCommunityId>${#Project#LocalHCID}</urn3:homeCommunityId>
@@ -7023,8 +6822,8 @@ FileUtils.CreateOrUpdateConnection("uddiConnectionInfo.xml", destConfigFileLocat
                <urn3:displayName>Use or disclosure of Psychotherapy Notes</urn3:displayName>
                <urn3:originalText>Use or disclosure of Psychotherapy Notes</urn3:originalText>
             </urn3:purposeOfDisclosureCoded>
-            <urn3:claimFormRef>Ref-Clm-123</urn3:claimFormRef>
-            <urn3:claimFormRaw>YWVvbGlhbQ==</urn3:claimFormRaw>
+            <!--urn3:claimFormRef>Ref-Clm-123</urn3:claimFormRef-->
+            <!--urn3:claimFormRaw>YWVvbGlhbQ==</urn3:claimFormRaw-->
             <urn3:samlAuthnStatement xmlns:urn1="urn:gov:hhs:fha:nhinc:common:nhinccommon">
                <urn3:authInstant>2009-04-16T13:15:39Z</urn3:authInstant>
                <urn3:sessionIndex>987</urn3:sessionIndex>
@@ -7087,7 +6886,7 @@ count(//ns6:AdhocQueryResponse[1]/ns3:RegistryObjectList[1]/ns3:ExtrinsicObject)
                 <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
               </con:configuration>
             </con:assertion>
-            <con:jmsConfig JMSDeliveryMode="PERSISTENT"/><con:jmsPropertyConfig/><con:wsaConfig mustUnderstand="NONE" version="200508"/>
+            <con:credentials><con:authType>Global HTTP Settings</con:authType></con:credentials><con:jmsConfig JMSDeliveryMode="PERSISTENT"/><con:jmsPropertyConfig/><con:wsaConfig mustUnderstand="NONE" version="200508"/>
             <con:wsrmConfig version="1.2"/>
           </con:request>
         </con:config>
@@ -7123,7 +6922,7 @@ def sourceDir = System.env['NHINC_PROPERTIES_DIR'] + "/master/";
 def sourceFile = "uddiConnectionInfo.xml";
 def destDir = System.env['NHINC_PROPERTIES_DIR'];
 def destFile = "uddiConnectionInfo.xml";
-FileUtils.MoveFile(sourceDir, sourceFile, destDir, destFile, context, log);</con:tearDownScript></con:testCase>
+FileUtils.copyFile(sourceDir, sourceFile, destDir, destFile, context, log);</con:tearDownScript></con:testCase>
     <con:testCase disabled="true" failOnError="true" failTestCaseOnErrors="true" id="5c44df01-4f70-48d3-8930-a31ac9100e8e" keepSession="false" maxResults="0" name="HCID Happy Path - Correlation for HCID IN UDDI file/target XML" searchProperties="true">
       <con:settings/>
       
@@ -7145,7 +6944,7 @@ def destFile = "uddiConnectionInfo.xml";
 
 log.info(sourceDir +'; ' + sourceFile  +'; ' + destDir +'; ' + destFile );
 
-FileUtils.MoveFile(sourceDir, sourceFile, destDir, destFile, context, log);</script>
+FileUtils.copyFile(sourceDir, sourceFile, destDir, destFile, context, log);</script>
         </con:config>
       </con:testStep>
       <con:testStep name="update config - gateway.properties" type="groovy">
@@ -7290,8 +7089,6 @@ FileUtils.CreateOrUpdateConnection("uddiConnectionInfo.xml", destConfigFileLocat
                <urn3:zipCode>AddrZip</urn3:zipCode>
             </urn3:address>
             <urn3:dateOfBirth xmlns:urn1="urn:gov:hhs:fha:nhinc:common:nhinccommon">06/04/1959 05:21:00</urn3:dateOfBirth>
-            <urn3:dateOfSignature xmlns:urn1="urn:gov:hhs:fha:nhinc:common:nhinccommon">${#Project#sigDate}</urn3:dateOfSignature>
-            <urn3:expirationDate xmlns:urn1="urn:gov:hhs:fha:nhinc:common:nhinccommon">${#Project#expireDate}</urn3:expirationDate>
             <urn3:explanationNonClaimantSignature xmlns:urn1="urn:gov:hhs:fha:nhinc:common:nhinccommon">Electronic</urn3:explanationNonClaimantSignature>
             <urn3:haveSecondWitnessSignature xmlns:urn1="urn:gov:hhs:fha:nhinc:common:nhinccommon">false</urn3:haveSecondWitnessSignature>
             <urn3:haveSignature xmlns:urn1="urn:gov:hhs:fha:nhinc:common:nhinccommon">false</urn3:haveSignature>
@@ -7329,7 +7126,6 @@ FileUtils.CreateOrUpdateConnection("uddiConnectionInfo.xml", destConfigFileLocat
                   <urn3:originalText>phoneCode</urn3:originalText>
                </urn3:phoneNumberType>
             </urn3:phoneNumber>
-            <urn3:purposeOfDisclosure xmlns:urn1="urn:gov:hhs:fha:nhinc:common:nhinccommon">TREATMENT</urn3:purposeOfDisclosure>
             <urn3:secondWitnessAddress xmlns:urn1="urn:gov:hhs:fha:nhinc:common:nhinccommon">
                <urn3:addressType>
                   <urn3:code>AddrCode</urn3:code>
@@ -7434,7 +7230,6 @@ FileUtils.CreateOrUpdateConnection("uddiConnectionInfo.xml", destConfigFileLocat
                   <urn3:fullName>Kasrl S. Skagerberg</urn3:fullName>
                </urn3:personName>
                <urn3:userName>kskagerb</urn3:userName>
-               <urn3:role>Pharmacy</urn3:role>
                <urn3:org>
                   <urn3:description>${#Project#LocalHCDescription}</urn3:description>
                   <urn3:homeCommunityId>${#Project#LocalHCID}</urn3:homeCommunityId>
@@ -7458,8 +7253,8 @@ FileUtils.CreateOrUpdateConnection("uddiConnectionInfo.xml", destConfigFileLocat
                <urn3:displayName>Use or disclosure of Psychotherapy Notes</urn3:displayName>
                <urn3:originalText>Use or disclosure of Psychotherapy Notes</urn3:originalText>
             </urn3:purposeOfDisclosureCoded>
-            <urn3:claimFormRef>Ref-Clm-123</urn3:claimFormRef>
-            <urn3:claimFormRaw>YWVvbGlhbQ==</urn3:claimFormRaw>
+            <!--urn3:claimFormRef>Ref-Clm-123</urn3:claimFormRef-->
+            <!--urn3:claimFormRaw>YWVvbGlhbQ==</urn3:claimFormRaw-->
             <urn3:samlAuthnStatement xmlns:urn1="urn:gov:hhs:fha:nhinc:common:nhinccommon">
                <urn3:authInstant>2009-04-16T13:15:39Z</urn3:authInstant>
                <urn3:sessionIndex>987</urn3:sessionIndex>
@@ -7538,7 +7333,7 @@ count(//ns6:AdhocQueryResponse[1]/ns3:RegistryObjectList[1]/ns3:ExtrinsicObject)
                 <ignoreNamspaceDifferences>false</ignoreNamspaceDifferences>
               </con:configuration>
             </con:assertion>
-            <con:jmsConfig JMSDeliveryMode="PERSISTENT"/><con:jmsPropertyConfig/><con:wsaConfig mustUnderstand="NONE" version="200508"/>
+            <con:credentials><con:authType>Global HTTP Settings</con:authType></con:credentials><con:jmsConfig JMSDeliveryMode="PERSISTENT"/><con:jmsPropertyConfig/><con:wsaConfig mustUnderstand="NONE" version="200508"/>
             <con:wsrmConfig version="1.2"/>
           </con:request>
         </con:config>
@@ -7574,7 +7369,7 @@ def sourceDir = System.env['NHINC_PROPERTIES_DIR'] + "/master/";
 def sourceFile = "uddiConnectionInfo.xml";
 def destDir = System.env['NHINC_PROPERTIES_DIR'];
 def destFile = "uddiConnectionInfo.xml";
-FileUtils.MoveFile(sourceDir, sourceFile, destDir, destFile, context, log);</con:tearDownScript></con:testCase>
+FileUtils.copyFile(sourceDir, sourceFile, destDir, destFile, context, log);</con:tearDownScript></con:testCase>
     <con:testCase failOnError="true" failTestCaseOnErrors="true" id="7c286477-8a88-4aad-ab67-d6968f946de2" keepSession="false" maxResults="0" name="State Happy Path - Correlation for HCID not in UDDI file/target XML" searchProperties="true">
       <con:settings/>
       
@@ -7591,12 +7386,12 @@ def projectPropPath = groovyUtils.projectPath
 def sourceDir = projectPropPath;
 def sourceFile = "UDDIcopy-uddiConnectionInfo.xml";
 //def destDir = context.findProperty( "NHINGatewayConfigDir" );
-def destDir = System.env['NHINC_PROPERTIES_DIR'];
+def destDir = context.findProperty("GatewayPropDir");
 def destFile = "uddiConnectionInfo.xml";
 
 log.info(sourceDir +'; ' + sourceFile  +'; ' + destDir +'; ' + destFile );
 
-FileUtils.MoveFile(sourceDir, sourceFile, destDir, destFile, context, log);</script></con:config>
+FileUtils.copyFile(sourceDir, sourceFile, destDir, destFile, log);</script></con:config>
       </con:testStep>
       <con:testStep name="Copy internalConnectionInfo" type="groovy">
         <con:settings/>
@@ -7610,18 +7405,17 @@ def projectPropPath = groovyUtils.projectPath
 
 def sourceDir = projectPropPath;
 def sourceFile = "UDDIcopy-internalConnectionInfo";
-def destDir = System.env['NHINC_PROPERTIES_DIR'];
+def destDir = context.findProperty("GatewayPropDir");
 def destFile = "internalConnectionInfo.xml";
 
 log.info(sourceDir +'; ' + sourceFile  +'; ' + destDir +'; ' + destFile );
 
-FileUtils.MoveFile(sourceDir, sourceFile, destDir, destFile, context, log);</script></con:config>
+FileUtils.copyFile(sourceDir, sourceFile, destDir, destFile, log);</script></con:config>
       </con:testStep>
       <con:testStep name="update config" type="groovy">
         <con:settings/>
-        <con:config>
-          <script>//def destConfigFileLocation = dataSource.getPropertyValue("NHINGatewayConfigDir");
-def destConfigFileLocation = System.env['NHINC_PROPERTIES_DIR'];
+        <con:config><script>//def destConfigFileLocation = dataSource.getPropertyValue("NHINGatewayConfigDir");
+def destConfigFileLocation = context.findProperty("GatewayPropDir");
 
 void UpdateProperty(String directory, String filename, String propertyKey, String propertyValue,context,log) {
 			  
@@ -7636,8 +7430,7 @@ void UpdateProperty(String directory, String filename, String propertyKey, Strin
    properties = null;
 }
 
-UpdateProperty(destConfigFileLocation,"gateway.properties","documentQueryQuerySelf","false",context,log);</script>
-        </con:config>
+nhinc.FileUtils.updateProperty(destConfigFileLocation,"gateway.properties","documentQueryQuerySelf","false",log);</script></con:config>
       </con:testStep>
       <con:testStep name="Generate patient ID for Doc Query" type="groovy">
         <con:settings/>
@@ -7710,15 +7503,15 @@ context.testCase.setPropertyValue('FullPatientID', "'${dqPatientID}^^^&amp;amp;$
         <con:config><script>import nhinc.FileUtils;
 def groovyUtils = new com.eviware.soapui.support.GroovyUtils( context );
 
-def destConfigFileLocation = System.env['NHINC_PROPERTIES_DIR'];
+def destConfigFileLocation = context.findProperty("GatewayPropDir");
 def NHINGatewayHost = context.findProperty("NHINGatewayHost");
 def mockHost = context.findProperty("mockHost");
 def dQURL = "https://localhost:8181/Gateway/DocumentQuery/2_0/NhinService/RespondingGateway_Query_Service/DocQuery";
 def remoteHCID1 = context.findProperty("UDDIhcid1");
 def remoteHCID3 = context.findProperty("UDDIhcid3");
 
-FileUtils.CreateOrUpdateConnection("uddiConnectionInfo.xml", destConfigFileLocation, remoteHCID1, "QueryForDocuments", dQURL, "2.0", context, log)
-FileUtils.CreateOrUpdateConnection("uddiConnectionInfo.xml", destConfigFileLocation, remoteHCID3, "QueryForDocuments", dQURL, "2.0", context, log)</script></con:config>
+FileUtils.createOrUpdateConnection("uddiConnectionInfo.xml", destConfigFileLocation, remoteHCID1, "QueryForDocuments", dQURL, "2.0", log)
+FileUtils.createOrUpdateConnection("uddiConnectionInfo.xml", destConfigFileLocation, remoteHCID3, "QueryForDocuments", dQURL, "2.0", log)</script></con:config>
       </con:testStep>
       
       <con:testStep name="Document Query" type="request">
@@ -7761,8 +7554,6 @@ FileUtils.CreateOrUpdateConnection("uddiConnectionInfo.xml", destConfigFileLocat
                <urn3:zipCode>AddrZip</urn3:zipCode>
             </urn3:address>
             <urn3:dateOfBirth xmlns:urn1="urn:gov:hhs:fha:nhinc:common:nhinccommon">06/04/1959 05:21:00</urn3:dateOfBirth>
-            <urn3:dateOfSignature xmlns:urn1="urn:gov:hhs:fha:nhinc:common:nhinccommon">${#Project#sigDate}</urn3:dateOfSignature>
-            <urn3:expirationDate xmlns:urn1="urn:gov:hhs:fha:nhinc:common:nhinccommon">${#Project#expireDate}</urn3:expirationDate>
             <urn3:explanationNonClaimantSignature xmlns:urn1="urn:gov:hhs:fha:nhinc:common:nhinccommon">Electronic</urn3:explanationNonClaimantSignature>
             <urn3:haveSecondWitnessSignature xmlns:urn1="urn:gov:hhs:fha:nhinc:common:nhinccommon">false</urn3:haveSecondWitnessSignature>
             <urn3:haveSignature xmlns:urn1="urn:gov:hhs:fha:nhinc:common:nhinccommon">false</urn3:haveSignature>
@@ -7800,7 +7591,6 @@ FileUtils.CreateOrUpdateConnection("uddiConnectionInfo.xml", destConfigFileLocat
                   <urn3:originalText>phoneCode</urn3:originalText>
                </urn3:phoneNumberType>
             </urn3:phoneNumber>
-            <urn3:purposeOfDisclosure xmlns:urn1="urn:gov:hhs:fha:nhinc:common:nhinccommon">TREATMENT</urn3:purposeOfDisclosure>
             <urn3:secondWitnessAddress xmlns:urn1="urn:gov:hhs:fha:nhinc:common:nhinccommon">
                <urn3:addressType>
                   <urn3:code>AddrCode</urn3:code>
@@ -7905,7 +7695,6 @@ FileUtils.CreateOrUpdateConnection("uddiConnectionInfo.xml", destConfigFileLocat
                   <urn3:fullName>Kasrl S. Skagerberg</urn3:fullName>
                </urn3:personName>
                <urn3:userName>kskagerb</urn3:userName>
-               <urn3:role>Pharmacy</urn3:role>
                <urn3:org>
                   <urn3:description>${#Project#LocalHCDescription}</urn3:description>
                   <urn3:homeCommunityId>${#Project#LocalHCID}</urn3:homeCommunityId>
@@ -7929,8 +7718,8 @@ FileUtils.CreateOrUpdateConnection("uddiConnectionInfo.xml", destConfigFileLocat
                <urn3:displayName>Use or disclosure of Psychotherapy Notes</urn3:displayName>
                <urn3:originalText>Use or disclosure of Psychotherapy Notes</urn3:originalText>
             </urn3:purposeOfDisclosureCoded>
-            <urn3:claimFormRef>Ref-Clm-123</urn3:claimFormRef>
-            <urn3:claimFormRaw>YWVvbGlhbQ==</urn3:claimFormRaw>
+            <!--urn3:claimFormRef>Ref-Clm-123</urn3:claimFormRef-->
+            <!--urn3:claimFormRaw>YWVvbGlhbQ==</urn3:claimFormRaw-->
             <urn3:samlAuthnStatement xmlns:urn1="urn:gov:hhs:fha:nhinc:common:nhinccommon">
                <urn3:authInstant>2009-04-16T13:15:39Z</urn3:authInstant>
                <urn3:sessionIndex>987</urn3:sessionIndex>
@@ -8011,26 +7800,26 @@ declare namespace ns15='urn:oasis:names:tc:ebxml-regrep:xsd:rs:3.0';
 declare namespace ns15='urn:oasis:names:tc:ebxml-regrep:xsd:rs:3.0';
 //ns16:AdhocQueryResponse[1]/ns15:RegistryErrorList[1]/ns15:RegistryError[1]/@codeContext</path><content>Unable to find any callable targets.</content><allowWildcards>false</allowWildcards><ignoreNamspaceDifferences>false</ignoreNamspaceDifferences></con:configuration>
             </con:assertion>
-            <con:jmsConfig JMSDeliveryMode="PERSISTENT"/><con:jmsPropertyConfig/><con:wsaConfig mustUnderstand="NONE" version="200508"/>
+            <con:credentials><con:authType>Global HTTP Settings</con:authType></con:credentials><con:jmsConfig JMSDeliveryMode="PERSISTENT"/><con:jmsPropertyConfig/><con:wsaConfig mustUnderstand="NONE" version="200508"/>
             <con:wsrmConfig version="1.2"/>
           </con:request>
         </con:config>
-      </con:testStep><con:properties>
+      </con:testStep><con:setupScript>nhinc.FileUtils.backupConfiguration(context.findProperty("GatewayPropDir"), log);</con:setupScript><con:properties>
         <con:property>
           <con:name>startDate</con:name>
-          <con:value>2012-08-27T13:35:55Z</con:value>
+          <con:value>2012-12-15T02:59:37Z</con:value>
         </con:property>
         <con:property>
           <con:name>endDate</con:name>
-          <con:value>2012-08-27T13:45:55Z</con:value>
+          <con:value>2012-12-15T03:09:37Z</con:value>
         </con:property>
         <con:property>
           <con:name>sigDate</con:name>
-          <con:value>08/27/2012 13:35:55</con:value>
+          <con:value>12/15/2012 02:59:37</con:value>
         </con:property>
         <con:property>
           <con:name>expireDate</con:name>
-          <con:value>2012-09-26T00:00:00Z</con:value>
+          <con:value>2013-01-14T00:00:00Z</con:value>
         </con:property>
         <con:property>
           <con:name>FullPatientID</con:name>
@@ -8038,14 +7827,7 @@ declare namespace ns15='urn:oasis:names:tc:ebxml-regrep:xsd:rs:3.0';
         </con:property>
       </con:properties>
       <con:reportParameters/>
-    <con:tearDownScript>import nhinc.FileUtils;
-FileUtils.restoreToMasterConfiguration(context, log);
-
-def sourceDir = System.env['NHINC_PROPERTIES_DIR'] + "/master/";
-def sourceFile = "uddiConnectionInfo.xml";
-def destDir = System.env['NHINC_PROPERTIES_DIR'];
-def destFile = "uddiConnectionInfo.xml";
-FileUtils.MoveFile(sourceDir, sourceFile, destDir, destFile, context, log);</con:tearDownScript></con:testCase>
+    <con:tearDownScript>nhinc.FileUtils.restoreConfiguration(context.findProperty("GatewayPropDir"), log);</con:tearDownScript></con:testCase>
     <con:properties/>
     <con:reportParameters/>
   </con:testSuite>
@@ -8119,7 +7901,7 @@ FileUtils.MoveFile(sourceDir, sourceFile, destDir, destFile, context, log);</con
     
     
     
-  <con:property><con:name>UDDIhcid1</con:name><con:value>4.4</con:value></con:property><con:property><con:name>UDDIhcid2</con:name><con:value>5.5</con:value></con:property><con:property><con:name>UDDIhcid3</con:name><con:value>6.6</con:value></con:property><con:property><con:name>UDDIhcid4</con:name><con:value>7.7</con:value></con:property><con:property><con:name>UnSubscriptionID</con:name><con:value>3e74139f-5271-4db1-98c0-88748fa3e4e3</con:value></con:property><con:property><con:name>UDDIhcid9</con:name><con:value>9.9</con:value></con:property><con:property><con:name>UDDIaa9</con:name><con:value>9.9</con:value></con:property></con:properties>
+  <con:property><con:name>UDDIhcid1</con:name><con:value>4.4</con:value></con:property><con:property><con:name>UDDIhcid2</con:name><con:value>5.5</con:value></con:property><con:property><con:name>UDDIhcid3</con:name><con:value>6.6</con:value></con:property><con:property><con:name>UDDIhcid4</con:name><con:value>7.7</con:value></con:property><con:property><con:name>UnSubscriptionID</con:name><con:value>3e74139f-5271-4db1-98c0-88748fa3e4e3</con:value></con:property><con:property><con:name>UDDIhcid9</con:name><con:value>9.9</con:value></con:property><con:property><con:name>UDDIaa9</con:name><con:value>9.9</con:value></con:property><con:property><con:name>GatewayPropDir</con:name><con:value>c:\glassfish3\glassfish\domains\domain1\config\nhin</con:value></con:property></con:properties>
   <con:afterLoadScript>def propertiesFile = new File(new File(project.path).parent, 'DocQueryTestsForUDDI-soapui-project.properties')
 if (propertiesFile.exists()) {
 	def props = new Properties()
@@ -8243,10 +8025,5 @@ com.eviware.soapui.impl.wsdl.testcase.WsdlTestRunContext.metaClass.withSql = { d
     <con:xmlTemplates/>
     <con:parameters/>
   </con:reporting>
-  <con:eventHandlers name="TestSuiteRunListener.beforeTestCase" type="TestSuiteRunListener.beforeTestCase">
-    <con:script>FileUtils.backupConfiguration(context, log);</con:script>
-  </con:eventHandlers>
-  <con:eventHandlers name="TestSuiteRunListener.afterTestCase" type="TestSuiteRunListener.afterTestCase">
-    <con:script>FileUtils.restoreConfiguration(context, log)</con:script>
-  </con:eventHandlers>
+
 <con:sensitiveInformation/></con:soapui-project>

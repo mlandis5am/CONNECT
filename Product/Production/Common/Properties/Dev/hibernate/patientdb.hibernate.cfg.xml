@@ -14,8 +14,6 @@
 <hibernate-configuration>
 <session-factory>
 
-      <property name="show_sql">true</property>
-
       <property name="dialect">org.hibernate.dialect.MySQLDialect</property>
 
       <property name="hibernate.hbm2ddl.auto">update</property>
@@ -26,10 +24,7 @@
       and let Hibernate bind the session automatically to the thread    -->
       <property name="current_session_context_class">thread</property>
 
-      <!-- this will show us all sql statements -->
-      <property name="hibernate.show_sql">true</property>
-
-      <property name="connection.datasource">jdbc/patientdb_datasource</property>
+      <property name="connection.datasource">jjava:comp/env/dbc/patientdb_datasource</property>
 
       <!-- Mapping files -->
       <mapping resource="Patient.hbm.xml"/>

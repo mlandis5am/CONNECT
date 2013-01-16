@@ -27,20 +27,19 @@
 package gov.hhs.fha.nhinc.patientdiscovery.entity;
 
 import gov.hhs.fha.nhinc.common.nhinccommon.HomeCommunityType;
-import gov.hhs.fha.nhinc.common.nhinccommon.NhinTargetCommunityType;
 import gov.hhs.fha.nhinc.common.nhinccommon.NhinTargetSystemType;
 import gov.hhs.fha.nhinc.gateway.executorservice.ExecutorServiceHelper;
 import gov.hhs.fha.nhinc.nhinclib.NhincConstants;
 import gov.hhs.fha.nhinc.orchestration.OutboundOrchestratable;
 import gov.hhs.fha.nhinc.orchestration.OutboundOrchestratableMessage;
 import gov.hhs.fha.nhinc.orchestration.OutboundResponseProcessor;
+import gov.hhs.fha.nhinc.patientdiscovery.MessageGeneratorUtils;
 import gov.hhs.fha.nhinc.patientdiscovery.PatientDiscovery201306Processor;
 import gov.hhs.fha.nhinc.patientdiscovery.response.ResponseFactory;
 import gov.hhs.fha.nhinc.patientdiscovery.response.ResponseParams;
 import gov.hhs.fha.nhinc.transform.subdisc.HL7PRPA201306Transforms;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.apache.log4j.Logger;
 import org.hl7.v3.CommunityPRPAIN201306UV02ResponseType;
 import org.hl7.v3.PRPAIN201306UV02;
 import org.hl7.v3.ProxyPRPAIN201305UVProxySecuredRequestType;
@@ -51,7 +50,9 @@ import org.hl7.v3.ProxyPRPAIN201305UVProxySecuredRequestType;
  */
 public class OutboundPatientDiscoveryProcessor implements OutboundResponseProcessor {
 
-    private static Log log = LogFactory.getLog(OutboundPatientDiscoveryProcessor.class);
+    private static final Logger LOG = Logger.getLogger(OutboundPatientDiscoveryProcessor.class);
+    
+    private MessageGeneratorUtils msgUtils = MessageGeneratorUtils.getInstance();
 
     private NhincConstants.GATEWAY_API_LEVEL cumulativeSpecLevel = null;
     private int count = 0;
@@ -70,19 +71,19 @@ public class OutboundPatientDiscoveryProcessor implements OutboundResponseProces
             OutboundOrchestratableMessage cumulativeResponse) {
 
         count++;
-        log.debug("EntityPatientDiscoveryProcessor::processNhinResponse count=" + count);
+        LOG.debug("EntityPatientDiscoveryProcessor::processNhinResponse count=" + count);
 
         OutboundOrchestratableMessage response = null;
         if (cumulativeResponse == null) {
             switch (cumulativeSpecLevel) {
             case LEVEL_g0: {
-                log.debug("EntityPatientDiscoveryProcessor::processNhinResponse createNewCumulativeResponse");
+                LOG.debug("EntityPatientDiscoveryProcessor::processNhinResponse createNewCumulativeResponse");
                 cumulativeResponse = OutboundPatientDiscoveryProcessorHelper
                         .createNewCumulativeResponse((OutboundPatientDiscoveryOrchestratable) individual);
                 break;
             }
             default: {
-                log.debug("EntityPatientDiscoveryProcessor::processNhinResponse unknown cumulativeSpecLevel.");
+                LOG.debug("EntityPatientDiscoveryProcessor::processNhinResponse unknown cumulativeSpecLevel.");
                 cumulativeResponse = OutboundPatientDiscoveryProcessorHelper
                         .createNewCumulativeResponse((OutboundPatientDiscoveryOrchestratable) individual);
                 break;
@@ -93,7 +94,7 @@ public class OutboundPatientDiscoveryProcessor implements OutboundResponseProces
         if (individual == null) {
             // can't get here as NhinCallableRequest will always return something
             // but if we ever do, log it and return cumulativeResponse passed in
-            log.error("EntityPatientDiscoveryProcessor::handleNhinResponse individual received was null!!!");
+            LOG.error("EntityPatientDiscoveryProcessor::handleNhinResponse individual received was null!!!");
             response = cumulativeResponse;
         } else {
             OutboundOrchestratableMessage individualResponse = processResponse(individual);
@@ -117,7 +118,7 @@ public class OutboundPatientDiscoveryProcessor implements OutboundResponseProces
     public OutboundOrchestratableMessage processResponse(OutboundOrchestratableMessage individualResponse) {
         try {
             if (individualResponse instanceof OutboundPatientDiscoveryOrchestratable) {
-                log.debug("EntityPatientDiscoveryProcessor::processResponse for start count=" + count);
+                LOG.debug("EntityPatientDiscoveryProcessor::processResponse for start count=" + count);
 
                 OutboundPatientDiscoveryOrchestratable individual = (OutboundPatientDiscoveryOrchestratable) individualResponse;
                 OutboundPatientDiscoveryOrchestratable responseOrch = new OutboundPatientDiscoveryOrchestratable(
@@ -133,10 +134,10 @@ public class OutboundPatientDiscoveryProcessor implements OutboundResponseProces
                 // store the AA to HCID mapping
                 new PatientDiscovery201306Processor().storeMapping(responseOrch.getResponse());
                 
-                log.debug("EntityPatientDiscoveryProcessor::processResponse done count=" + count);
+                LOG.debug("EntityPatientDiscoveryProcessor::processResponse done count=" + count);
                 return responseOrch;            
             } else {
-                log.error("EntityPatientDiscoveryProcessor::processResponse individualResponse received was unknown!!!");
+                LOG.error("EntityPatientDiscoveryProcessor::processResponse individualResponse received was unknown!!!");
                 throw new Exception(
                         "EntityPatientDiscoveryProcessor::processResponse individualResponse received was unknown!!!");
             }
@@ -204,7 +205,7 @@ public class OutboundPatientDiscoveryProcessor implements OutboundResponseProces
                 response.setCumulativeResponse(cumulativeResponse.getCumulativeResponse());
                 return response;            
             } else {
-                log.error("EntityPatientDiscoveryProcessor::aggregateResponse cumulativeResponse received was unknown.");
+                LOG.error("EntityPatientDiscoveryProcessor::aggregateResponse cumulativeResponse received was unknown.");
                 throw new Exception(
                         "EntityPatientDiscoveryProcessor::aggregateResponse cumulativeResponse received was unknown.");
             }
@@ -230,16 +231,8 @@ public class OutboundPatientDiscoveryProcessor implements OutboundResponseProces
         }
     }
 
-    protected CommunityPRPAIN201306UV02ResponseType createCommunityPRPAIN201306UV02ResponseType(String hcid) {
-        NhinTargetCommunityType target = new NhinTargetCommunityType();
-        HomeCommunityType home = new HomeCommunityType();
-        home.setHomeCommunityId(hcid);
-        target.setHomeCommunity(home);
-        
-        CommunityPRPAIN201306UV02ResponseType communityResponse = new CommunityPRPAIN201306UV02ResponseType();
-        communityResponse.setNhinTargetCommunity(target);
-                
-        return communityResponse;
+    protected CommunityPRPAIN201306UV02ResponseType createCommunityPRPAIN201306UV02ResponseType(String hcid) {        
+        return msgUtils.createCommunityPRPAIN201306UV02ResponseType(hcid);
     }
     
     /**
@@ -250,7 +243,7 @@ public class OutboundPatientDiscoveryProcessor implements OutboundResponseProces
      * @return
      */
     public OutboundOrchestratableMessage processErrorResponse(OutboundOrchestratableMessage request, String error) {
-        log.debug("EntityPatientDiscoveryProcessor::processErrorResponse error=" + error);
+        LOG.debug("EntityPatientDiscoveryProcessor::processErrorResponse error=" + error);
         return processError((OutboundPatientDiscoveryOrchestratable) request, error);        
     }
 
@@ -264,7 +257,7 @@ public class OutboundPatientDiscoveryProcessor implements OutboundResponseProces
      */
     public OutboundPatientDiscoveryOrchestratable processError(OutboundPatientDiscoveryOrchestratable request,
             String error) {
-        log.debug("EntityPatientDiscoveryProcessor::processError error=" + error);
+        LOG.debug("EntityPatientDiscoveryProcessor::processError error=" + error);
         OutboundPatientDiscoveryOrchestratable response = new OutboundPatientDiscoveryOrchestratable(null,
                 request.getResponseProcessor(), null, null, request.getAssertion(), request.getServiceName(),
                 request.getTarget(), request.getRequest());
@@ -290,7 +283,7 @@ public class OutboundPatientDiscoveryProcessor implements OutboundResponseProces
             communityResponse.setPRPAIN201306UV02(current);
             
             cumulativeResponse.getCumulativeResponse().getCommunityResponse().add(communityResponse);
-            log.debug("EntityPatientDiscoveryProcessor::aggregateResponse combine next response done cumulativeResponse count="
+            LOG.debug("EntityPatientDiscoveryProcessor::aggregateResponse combine next response done cumulativeResponse count="
                     + count);
         } else {
             throw new Exception(

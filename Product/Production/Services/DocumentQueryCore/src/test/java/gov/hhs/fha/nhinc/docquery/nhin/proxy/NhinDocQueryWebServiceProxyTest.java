@@ -26,18 +26,27 @@
  */
 package gov.hhs.fha.nhinc.docquery.nhin.proxy;
 
-import gov.hhs.fha.nhinc.docquery.nhin.proxy.NhinDocQueryProxyWebServiceSecuredImpl;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import gov.hhs.fha.nhinc.aspect.NwhinInvocationEvent;
+import gov.hhs.fha.nhinc.common.nhinccommon.AssertionType;
+import gov.hhs.fha.nhinc.common.nhinccommon.NhinTargetSystemType;
+import gov.hhs.fha.nhinc.docquery.aspect.AdhocQueryRequestDescriptionBuilder;
+import gov.hhs.fha.nhinc.docquery.aspect.AdhocQueryResponseDescriptionBuilder;
 import ihe.iti.xds_b._2007.RespondingGatewayQueryPortType;
+
+import java.lang.reflect.Method;
+
 import javax.xml.ws.Service;
-import org.apache.commons.logging.Log;
-import org.jmock.Expectations;
+
+import oasis.names.tc.ebxml_regrep.xsd.query._3.AdhocQueryRequest;
+
 import org.jmock.Mockery;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
 import org.jmock.lib.legacy.ClassImposteriser;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import static org.junit.Assert.*;
 
 /**
  * 
@@ -51,27 +60,19 @@ public class NhinDocQueryWebServiceProxyTest {
         }
     };
 
-    final Log mockLog = context.mock(Log.class);
     final Service mockService = context.mock(Service.class);
     final RespondingGatewayQueryPortType mockPort = context.mock(RespondingGatewayQueryPortType.class);
 
     @Test
-    public void testCreateLogger() {
-        try {
-            NhinDocQueryProxyWebServiceSecuredImpl sut = new NhinDocQueryProxyWebServiceSecuredImpl() {
-                @Override
-                protected Log createLogger() {
-                    return mockLog;
-                }
-
-            };
-            Log log = sut.createLogger();
-            assertNotNull("Log was null", log);
-        } catch (Throwable t) {
-            System.out.println("Error running testCreateLogger test: " + t.getMessage());
-            t.printStackTrace();
-            fail("Error running testCreateLogger test: " + t.getMessage());
-        }
+    public void hasBeginOutboundProcessingEvent() throws Exception {
+        Class<NhinDocQueryProxyWebServiceSecuredImpl> clazz = NhinDocQueryProxyWebServiceSecuredImpl.class;
+        Method method = clazz.getMethod("respondingGatewayCrossGatewayQuery", AdhocQueryRequest.class,
+                AssertionType.class, NhinTargetSystemType.class);
+        NwhinInvocationEvent annotation = method.getAnnotation(NwhinInvocationEvent.class);
+        assertNotNull(annotation);
+        assertEquals(AdhocQueryRequestDescriptionBuilder.class, annotation.beforeBuilder());
+        assertEquals(AdhocQueryResponseDescriptionBuilder.class, annotation.afterReturningBuilder());
+        assertEquals("Document Query", annotation.serviceType());
+        assertEquals("", annotation.version());
     }
-
 }

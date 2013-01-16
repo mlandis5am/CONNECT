@@ -101,5 +101,10 @@ public class SamlConstants {
     public static final String CE_CODESYS_ID = "codeSystem";
     public static final String CE_CODESYSNAME_ID = "codeSystemName";
     public static final String CE_DISPLAYNAME_ID = "displayName";
-
+    public static final String SAML2_ASSERTION_NS = "urn:oasis:names:tc:SAML:2.0:assertion";
+    public static final String SAML2_ASSERTION_TAG = "Assertion";
+    public static final String XML_SIGNATURE_NS = "http://www.w3.org/2000/09/xmldsig#";
+    public static final String DIGEST_VALUE_TAG = "DigestValue";
+    public static final String SIGNATURE_TAG = "Signature";
+    public static final String SIGNATURE_VALUE_TAG = "SignatureValue";
 }
