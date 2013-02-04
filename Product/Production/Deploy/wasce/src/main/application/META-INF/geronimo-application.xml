@@ -20,6 +20,7 @@
         </sys:dependencies>
 
         <sys:hidden-classes>
+            <sys:filter>com.ibm.xml.xlxp</sys:filter> 
             <sys:filter>org.apache.cxf</sys:filter>
             <sys:filter>org.apache.geronimo.webservices</sys:filter>
             <sys:filter>org.apache.jcp</sys:filter>

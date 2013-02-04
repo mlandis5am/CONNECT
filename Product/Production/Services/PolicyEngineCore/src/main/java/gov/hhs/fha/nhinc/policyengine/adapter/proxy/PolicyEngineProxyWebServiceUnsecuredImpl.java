@@ -78,9 +78,8 @@ public class PolicyEngineProxyWebServiceUnsecuredImpl implements PolicyEnginePro
                 LOG.error("Failed to call the web service (" + serviceName + ").  The URL is null.");
             }
         } catch (Exception ex) {
-            LOG.error("Error: Failed to retrieve url for service: " + NhincConstants.POLICYENGINE_SERVICE_NAME
-                    + " for local home community");
-            LOG.error(ex.getMessage());
+            LOG.error("Error: Failed to check policy using endpoint for service: " + NhincConstants.POLICYENGINE_SERVICE_NAME
+                    + " for local home community", ex);
         }
 
         LOG.trace("End PolicyEngineWebServiceProxy.checkPolicy");

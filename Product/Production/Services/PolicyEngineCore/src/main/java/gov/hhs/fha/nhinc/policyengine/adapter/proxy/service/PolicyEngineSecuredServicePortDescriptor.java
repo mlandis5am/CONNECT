@@ -44,7 +44,7 @@ public class PolicyEngineSecuredServicePortDescriptor extends
      */
     @Override
     public String getWSAddressingAction() {
-        return "urn:gov:hhs:fha:nhinc:adapterpolicyenginesecured:body";
+        return "urn:gov:hhs:fha:nhinc:adapterpolicyenginesecured:CheckPolicy";
     }
 
     /*

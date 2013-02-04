@@ -90,7 +90,7 @@ public class XDRPolicyChecker {
         }
         CheckPolicyResponseType policyResp = policyProxy.checkPolicy(policyReq, assertion);
 
-        if (policyResp.getResponse() != null && NullChecker.isNotNullish(policyResp.getResponse().getResult())
+        if (policyResp != null && policyResp.getResponse() != null && NullChecker.isNotNullish(policyResp.getResponse().getResult())
                 && policyResp.getResponse().getResult().get(0) != null
                 && policyResp.getResponse().getResult().get(0).getDecision() == DecisionType.PERMIT) {
             policyIsValid = true;
